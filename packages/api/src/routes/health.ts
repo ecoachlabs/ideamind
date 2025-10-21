@@ -3,14 +3,27 @@ import { Pool } from 'pg';
 
 const router = Router();
 
+interface HealthResponse {
+  status: 'healthy' | 'degraded';
+  timestamp: string;
+  uptime: number;
+  version: string;
+  database?: {
+    status: 'connected' | 'error';
+    timestamp?: Date;
+    error?: string;
+  };
+}
+
 /**
  * GET /health
  * Health check endpoint
  */
 router.get('/', async (req: Request, res: Response) => {
+  // Database might not be attached for health endpoint (runs without auth)
   const db = (req as any).db as Pool | undefined;
 
-  const health: any = {
+  const health: HealthResponse = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
@@ -25,10 +38,10 @@ router.get('/', async (req: Request, res: Response) => {
         status: 'connected',
         timestamp: result.rows[0].now,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       health.database = {
         status: 'error',
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown database error',
       };
       health.status = 'degraded';
     }

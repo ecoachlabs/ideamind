@@ -41,10 +41,61 @@ export class WorkflowRepository {
 
   /**
    * Get workflow run by ID
+   * PERFORMANCE FIX #4: Load all related data in a single query to avoid N+1
    */
   async getWorkflowRun(id: string): Promise<WorkflowRun | null> {
-    const query = 'SELECT * FROM workflow_runs WHERE id = $1';
-    const result = await this.db.query<WorkflowRunRow>(query, [id]);
+    const query = `
+      SELECT
+        wr.*,
+        COALESCE(
+          json_agg(DISTINCT jsonb_build_object(
+            'id', pe.id,
+            'phase_id', pe.phase_id,
+            'phase_name', pe.phase_name,
+            'state', pe.state,
+            'started_at', pe.started_at,
+            'completed_at', pe.completed_at,
+            'cost_usd', pe.cost_usd,
+            'retry_count', pe.retry_count,
+            'error', pe.error
+          )) FILTER (WHERE pe.id IS NOT NULL),
+          '[]'::json
+        ) as phases,
+        COALESCE(
+          json_agg(DISTINCT jsonb_build_object(
+            'gate_id', gr.gate_id,
+            'gate_name', gr.gate_name,
+            'phase', gr.phase,
+            'result', gr.result,
+            'score', gr.score,
+            'human_review_required', gr.human_review_required,
+            'evidence', gr.evidence,
+            'evaluated_at', gr.evaluated_at
+          )) FILTER (WHERE gr.gate_id IS NOT NULL),
+          '[]'::json
+        ) as gates,
+        COALESCE(
+          json_agg(DISTINCT jsonb_build_object(
+            'artifact_id', a.artifact_id,
+            'artifact_type', a.artifact_type,
+            'phase_id', a.phase_id,
+            'content_hash', a.content_hash,
+            'storage_location', a.storage_location,
+            'size_bytes', a.size_bytes,
+            'metadata', a.metadata,
+            'created_at', a.created_at
+          )) FILTER (WHERE a.artifact_id IS NOT NULL),
+          '[]'::json
+        ) as artifacts
+      FROM workflow_runs wr
+      LEFT JOIN phase_executions pe ON pe.workflow_run_id = wr.id
+      LEFT JOIN gate_results gr ON gr.workflow_run_id = wr.id
+      LEFT JOIN artifacts a ON a.workflow_run_id = wr.id
+      WHERE wr.id = $1
+      GROUP BY wr.id
+    `;
+
+    const result = await this.db.query<any>(query, [id]);
 
     if (result.rows.length === 0) {
       return null;
@@ -52,10 +103,22 @@ export class WorkflowRepository {
 
     const row = result.rows[0];
 
-    // Load related data
-    const phases = await this.getPhaseExecutions(id);
-    const gates = await this.getGateResults(id);
-    const artifacts = await this.getArtifacts(id);
+    // Load agents for each phase in a single query
+    const phaseIds = (row.phases || []).map((p: any) => p.id).filter((id: any) => id != null);
+    const agentsByPhaseId = await this.getAgentsByPhaseIds(phaseIds);
+
+    const phases = (row.phases || []).map((p: any) => ({
+      phaseId: p.phase_id,
+      phaseName: p.phase_name,
+      state: p.state,
+      startedAt: p.started_at,
+      completedAt: p.completed_at,
+      agents: agentsByPhaseId.get(p.id) || [],
+      artifacts: [],
+      costUsd: p.cost_usd,
+      retryCount: p.retry_count,
+      error: p.error,
+    }));
 
     return {
       id: row.id,
@@ -70,8 +133,26 @@ export class WorkflowRepository {
         maxRetries: row.max_retries,
       },
       phases,
-      gates,
-      artifacts,
+      gates: (row.gates || []).map((g: any) => ({
+        gateId: g.gate_id,
+        gateName: g.gate_name,
+        phase: g.phase,
+        result: g.result,
+        score: g.score,
+        evidence: g.evidence ?? [],
+        humanReviewRequired: g.human_review_required,
+        evaluatedAt: g.evaluated_at,
+      })),
+      artifacts: (row.artifacts || []).map((a: any) => ({
+        artifactId: a.artifact_id,
+        artifactType: a.artifact_type,
+        phaseId: a.phase_id,
+        contentHash: a.content_hash,
+        storageLocation: a.storage_location,
+        sizeBytes: a.size_bytes,
+        metadata: a.metadata,
+        createdAt: a.created_at,
+      })),
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       retryCount: row.retry_count,
@@ -185,6 +266,7 @@ export class WorkflowRepository {
 
   /**
    * Get phase executions for a workflow run
+   * PERFORMANCE FIX #4: Load agents in a single query to avoid N+1
    */
   async getPhaseExecutions(workflowRunId: string): Promise<PhaseExecution[]> {
     const query = `
@@ -195,24 +277,22 @@ export class WorkflowRepository {
 
     const result = await this.db.query<PhaseExecutionRow>(query, [workflowRunId]);
 
-    return Promise.all(
-      result.rows.map(async (row) => {
-        const agents = await this.getAgentExecutions(row.id);
+    // Load all agents in a single query
+    const phaseIds = result.rows.map(row => row.id);
+    const agentsByPhaseId = await this.getAgentsByPhaseIds(phaseIds);
 
-        return {
-          phaseId: row.phase_id,
-          phaseName: row.phase_name,
-          state: row.state as any,
-          startedAt: row.started_at,
-          completedAt: row.completed_at,
-          agents,
-          artifacts: [],
-          costUsd: row.cost_usd,
-          retryCount: row.retry_count,
-          error: row.error,
-        };
-      })
-    );
+    return result.rows.map((row) => ({
+      phaseId: row.phase_id,
+      phaseName: row.phase_name,
+      state: row.state as any,
+      startedAt: row.started_at,
+      completedAt: row.completed_at,
+      agents: agentsByPhaseId.get(row.id) || [],
+      artifacts: [],
+      costUsd: row.cost_usd,
+      retryCount: row.retry_count,
+      error: row.error,
+    }));
   }
 
   /**
@@ -270,6 +350,48 @@ export class WorkflowRepository {
       toolsInvoked: row.tools_invoked,
       error: row.error,
     }));
+  }
+
+  /**
+   * Get agent executions for multiple phases in a single query
+   * PERFORMANCE FIX #4: Prevents N+1 query problem
+   */
+  private async getAgentsByPhaseIds(phaseIds: number[]): Promise<Map<number, AgentExecution[]>> {
+    if (phaseIds.length === 0) {
+      return new Map();
+    }
+
+    const query = `
+      SELECT * FROM agent_executions
+      WHERE phase_execution_id = ANY($1)
+      ORDER BY phase_execution_id, id ASC
+    `;
+
+    const result = await this.db.query<AgentExecutionRow>(query, [phaseIds]);
+
+    // Group agents by phase_execution_id
+    const agentsByPhase = new Map<number, AgentExecution[]>();
+
+    for (const row of result.rows) {
+      const agent: AgentExecution = {
+        agentId: row.agent_id,
+        agentType: row.agent_type,
+        state: row.state as any,
+        startedAt: row.started_at,
+        completedAt: row.completed_at,
+        costUsd: row.cost_usd,
+        tokensUsed: row.tokens_used,
+        toolsInvoked: row.tools_invoked,
+        error: row.error,
+      };
+
+      if (!agentsByPhase.has(row.phase_execution_id)) {
+        agentsByPhase.set(row.phase_execution_id, []);
+      }
+      agentsByPhase.get(row.phase_execution_id)!.push(agent);
+    }
+
+    return agentsByPhase;
   }
 
   /**

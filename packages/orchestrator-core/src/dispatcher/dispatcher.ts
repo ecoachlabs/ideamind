@@ -12,6 +12,8 @@
 
 import { EventEmitter } from 'events';
 import { Recorder } from '../recorder/recorder';
+import { generatePrefixedShortId } from '../utils/id-generator';
+import { logger } from '../utils/logger';
 
 /**
  * Event topics from Level-2 spec
@@ -449,7 +451,7 @@ export class Dispatcher extends EventEmitter {
     this.processingTimer = setInterval(() => {
       // Wrap async call to catch rejections
       this.processNext().catch((error) => {
-        console.error('[Dispatcher] Fatal error in processing loop:', error);
+        logger.error('[Dispatcher] Fatal error in processing loop', error);
         this.emit('fatal:error', error);
         // Don't rethrow - keep the loop alive
       });
@@ -616,9 +618,10 @@ export class Dispatcher extends EventEmitter {
 
   /**
    * Generate unique message ID
+   * SECURITY FIX #6: Use cryptographically secure ID generation
    */
   private generateId(): string {
-    return `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return generatePrefixedShortId('msg', 12);
   }
 
   /**

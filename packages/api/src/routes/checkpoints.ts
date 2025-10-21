@@ -1,7 +1,7 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { Pool } from 'pg';
+import { Router, Response, NextFunction } from 'express';
 import { CheckpointManager } from '@ideamine/orchestrator-core/checkpoint';
 import { BadRequestError, NotFoundError } from '../middleware/error-handler';
+import { IdeaMineRequest } from '../types/express';
 
 const router = Router();
 
@@ -9,9 +9,9 @@ const router = Router();
  * GET /api/checkpoints/runs/:runId
  * Get all checkpoints for a run
  */
-router.get('/runs/:runId', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/runs/:runId', async (req: IdeaMineRequest, res: Response, next: NextFunction) => {
   try {
-    const db = (req as any).db as Pool;
+    const { db } = req;
     const { runId } = req.params;
     const { phase } = req.query;
 
@@ -45,9 +45,9 @@ router.get('/runs/:runId', async (req: Request, res: Response, next: NextFunctio
  * GET /api/checkpoints/:checkpointId
  * Get checkpoint details
  */
-router.get('/:checkpointId', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:checkpointId', async (req: IdeaMineRequest, res: Response, next: NextFunction) => {
   try {
-    const db = (req as any).db as Pool;
+    const { db } = req;
     const { checkpointId } = req.params;
 
     const checkpointManager = new CheckpointManager(db);
@@ -67,9 +67,9 @@ router.get('/:checkpointId', async (req: Request, res: Response, next: NextFunct
  * POST /api/checkpoints/:checkpointId/resume
  * Resume from a checkpoint
  */
-router.post('/:checkpointId/resume', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:checkpointId/resume', async (req: IdeaMineRequest, res: Response, next: NextFunction) => {
   try {
-    const db = (req as any).db as Pool;
+    const { db } = req;
     const { checkpointId } = req.params;
 
     const checkpointManager = new CheckpointManager(db);
@@ -89,9 +89,9 @@ router.post('/:checkpointId/resume', async (req: Request, res: Response, next: N
  * DELETE /api/checkpoints/cleanup
  * Cleanup expired checkpoints
  */
-router.delete('/cleanup', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/cleanup', async (req: IdeaMineRequest, res: Response, next: NextFunction) => {
   try {
-    const db = (req as any).db as Pool;
+    const { db } = req;
 
     const checkpointManager = new CheckpointManager(db);
     const deleted = await checkpointManager.cleanupExpired();

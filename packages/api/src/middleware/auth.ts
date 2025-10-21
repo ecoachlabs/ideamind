@@ -36,14 +36,15 @@ export function authenticate(jwtSecret: string) {
         const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
         req.user = decoded;
         next();
-      } catch (error: any) {
-        if (error.name === 'TokenExpiredError') {
-          throw new UnauthorizedError('Token expired');
-        } else if (error.name === 'JsonWebTokenError') {
-          throw new UnauthorizedError('Invalid token');
-        } else {
-          throw error;
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          if (error.name === 'TokenExpiredError') {
+            throw new UnauthorizedError('Token expired');
+          } else if (error.name === 'JsonWebTokenError') {
+            throw new UnauthorizedError('Invalid token');
+          }
         }
+        throw error;
       }
     } catch (error) {
       next(error);

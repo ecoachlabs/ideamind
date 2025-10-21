@@ -1,4 +1,6 @@
 import { Pool, PoolClient, QueryResult } from 'pg';
+import { generatePrefixedShortId } from '../utils/id-generator';
+import { logger } from '../utils/logger';
 
 /**
  * Database connection configuration
@@ -31,8 +33,10 @@ export class DatabaseConnection {
   private pool: Pool;
   private static instance: DatabaseConnection;
   private healthMonitorInterval?: NodeJS.Timer;
+  private activeConnections: Map<string, { startTime: number; stack?: string }>;
 
   private constructor(config: DatabaseConfig) {
+    this.activeConnections = new Map();
     // SECURITY FIX #8: Secure SSL configuration
     this.pool = new Pool({
       host: config.host,
@@ -55,12 +59,18 @@ export class DatabaseConnection {
 
     // Handle pool errors
     this.pool.on('error', (err) => {
-      console.error('[DatabaseConnection] Unexpected pool error:', this.sanitizeError(err));
+      logger.error('[DatabaseConnection] Unexpected pool error', err, {
+        host: config.host,
+        port: config.port,
+        database: config.database,
+      });
     });
 
-    console.log(
-      `[DatabaseConnection] Pool created: ${config.host}:${config.port}/${config.database}`
-    );
+    logger.info('[DatabaseConnection] Pool created', {
+      host: config.host,
+      port: config.port,
+      database: config.database,
+    });
 
     // FEATURE #18: Start health monitoring
     this.startHealthMonitoring();
@@ -102,9 +112,15 @@ export class DatabaseConnection {
       const stats = this.getStats();
 
       if (stats.health === 'critical') {
-        console.error('[DatabaseConnection] CRITICAL:', stats.warnings);
+        logger.error('[DatabaseConnection] CRITICAL health status', undefined, {
+          warnings: stats.warnings,
+          stats,
+        });
       } else if (stats.health === 'warning') {
-        console.warn('[DatabaseConnection] WARNING:', stats.warnings);
+        logger.warn('[DatabaseConnection] WARNING health status', {
+          warnings: stats.warnings,
+          stats,
+        });
       }
     }, 30000); // Check every 30 seconds
   }
@@ -125,9 +141,9 @@ export class DatabaseConnection {
   /**
    * Execute a query
    */
-  async query<T = any>(
+  async query<T = unknown>(
     text: string,
-    params?: any[]
+    params?: unknown[]
   ): Promise<QueryResult<T>> {
     const start = Date.now();
 
@@ -136,15 +152,19 @@ export class DatabaseConnection {
       const duration = Date.now() - start;
 
       // SECURITY FIX #10: Sanitize query before logging
-      console.log(
-        `[DatabaseConnection] Query executed in ${duration}ms: ${this.sanitizeQuery(text)}`
-      );
+      logger.debug('[DatabaseConnection] Query executed', {
+        duration_ms: duration,
+        query: this.sanitizeQuery(text),
+        rows: result.rowCount,
+      });
 
       return result;
     } catch (error) {
       // SECURITY FIX #10: Sanitize error before logging
       const sanitizedError = this.sanitizeError(error);
-      console.error('[DatabaseConnection] Query error:', sanitizedError);
+      logger.error('[DatabaseConnection] Query error', error, {
+        query: this.sanitizeQuery(text),
+      });
 
       // Don't expose internal details to caller in production
       if (process.env.NODE_ENV === 'production') {
@@ -159,53 +179,73 @@ export class DatabaseConnection {
    * Execute code with a database client (auto-release)
    * Use this instead of getClient() to prevent connection leaks
    *
-   * PERFORMANCE FIX #3: Auto-releases connection
+   * PERFORMANCE FIX #3: Auto-releases connection with timeout protection
    */
   async withClient<T>(
-    callback: (client: PoolClient) => Promise<T>
+    callback: (client: PoolClient) => Promise<T>,
+    timeoutMs: number = 30000  // Default 30s timeout
   ): Promise<T> {
     const client = await this.pool.connect();
-    try {
-      return await callback(client);
-    } finally {
-      client.release(); // Always release, even on error
-    }
-  }
+    const startTime = Date.now();
 
-  /**
-   * Get a client from the pool for transactions
-   * @deprecated Use withClient() or transaction() instead to prevent leaks
-   */
-  async getClient(): Promise<PoolClient> {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('[DatabaseConnection] Direct getClient() usage detected. Use withClient() to prevent leaks.');
-    }
-    return await this.pool.connect();
-  }
-
-  /**
-   * Execute a transaction
-   */
-  async transaction<T>(
-    callback: (client: PoolClient) => Promise<T>
-  ): Promise<T> {
-    const client = await this.getClient();
+    // Track active connection
+    // SECURITY FIX #6: Use cryptographically secure ID generation
+    const connectionId = generatePrefixedShortId('conn', 12);
+    this.activeConnections.set(connectionId, {
+      startTime,
+      stack: process.env.NODE_ENV !== 'production' ? new Error().stack : undefined
+    });
 
     try {
-      await client.query('BEGIN');
+      // Race against timeout to prevent hung connections
+      const result = await Promise.race([
+        callback(client),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error(`Database operation timed out after ${timeoutMs}ms`)),
+            timeoutMs
+          )
+        ),
+      ]);
 
-      const result = await callback(client);
-
-      await client.query('COMMIT');
+      const duration = Date.now() - startTime;
+      if (duration > 5000) {
+        logger.warn('[DatabaseConnection] Slow operation detected', {
+          duration_ms: duration,
+          connection_id: connectionId,
+        });
+      }
 
       return result;
-    } catch (error) {
-      await client.query('ROLLBACK');
-      console.error('[DatabaseConnection] Transaction rolled back:', error);
-      throw error;
     } finally {
       client.release();
+      this.activeConnections.delete(connectionId);
     }
+  }
+
+  /**
+   * Execute a transaction with automatic BEGIN/COMMIT/ROLLBACK
+   * PERFORMANCE FIX #3: Uses withClient() to prevent leaks
+   */
+  async transaction<T>(
+    callback: (client: PoolClient) => Promise<T>,
+    timeoutMs: number = 30000
+  ): Promise<T> {
+    return this.withClient(async (client) => {
+      try {
+        await client.query('BEGIN');
+
+        const result = await callback(client);
+
+        await client.query('COMMIT');
+
+        return result;
+      } catch (error) {
+        await client.query('ROLLBACK');
+        logger.error('[DatabaseConnection] Transaction rolled back', error);
+        throw error;
+      }
+    }, timeoutMs);
   }
 
   /**
@@ -216,26 +256,29 @@ export class DatabaseConnection {
       const result = await this.query('SELECT NOW()');
       return result.rows.length > 0;
     } catch (error) {
-      console.error('[DatabaseConnection] Health check failed:', error);
+      logger.error('[DatabaseConnection] Health check failed', error);
       return false;
     }
   }
 
   /**
    * Get pool statistics with health assessment
-   * FEATURE #18: Enhanced pool monitoring
+   * FEATURE #18: Enhanced pool monitoring with active connection tracking
    */
   getStats(): {
     totalCount: number;
     idleCount: number;
     waitingCount: number;
+    activeConnections: number;
     health: 'healthy' | 'warning' | 'critical';
     warnings: string[];
   } {
+    const now = Date.now();
     const stats = {
       totalCount: this.pool.totalCount,
       idleCount: this.pool.idleCount,
       waitingCount: this.pool.waitingCount,
+      activeConnections: this.activeConnections.size,
       health: 'healthy' as 'healthy' | 'warning' | 'critical',
       warnings: [] as string[],
     };
@@ -262,7 +305,28 @@ export class DatabaseConnection {
       }
     }
 
+    // Warning: Long-running connections (potential leaks)
+    for (const [connId, info] of this.activeConnections.entries()) {
+      const duration = now - info.startTime;
+      if (duration > 60000) {  // 1 minute
+        stats.health = 'warning';
+        stats.warnings.push(`Connection ${connId} active for ${(duration / 1000).toFixed(1)}s`);
+      }
+    }
+
     return stats;
+  }
+
+  /**
+   * Get detailed information about active connections (for debugging)
+   */
+  getActiveConnections(): Array<{ id: string; durationMs: number; stack?: string }> {
+    const now = Date.now();
+    return Array.from(this.activeConnections.entries()).map(([id, info]) => ({
+      id,
+      durationMs: now - info.startTime,
+      stack: info.stack,
+    }));
   }
 
   /**
@@ -273,7 +337,65 @@ export class DatabaseConnection {
       clearInterval(this.healthMonitorInterval);
     }
     await this.pool.end();
-    console.log('[DatabaseConnection] Pool closed');
+    logger.info('[DatabaseConnection] Pool closed');
+  }
+}
+
+/**
+ * Validate database password strength
+ * SECURITY FIX #7: Prevent weak passwords in production
+ */
+function validatePasswordStrength(password: string, env: string): void {
+  // Common weak passwords to block
+  const weakPasswords = [
+    'password', 'Password1', '12345678', 'postgres', 'admin', 'root',
+    'test', 'demo', 'changeme', 'default', 'secret', 'ideamine'
+  ];
+
+  // Check for weak/common passwords
+  if (weakPasswords.includes(password)) {
+    if (env === 'production') {
+      throw new Error(
+        'FATAL: Weak/common password detected. Never use common passwords in production.\n' +
+        'Generate a strong password: openssl rand -base64 32'
+      );
+    } else {
+      console.warn(
+        '⚠️  SECURITY WARNING: Using common/weak password.\n' +
+        '⚠️  This is acceptable for local development only.\n' +
+        '⚠️  Generate a strong password for production: openssl rand -base64 32'
+      );
+    }
+  }
+
+  // Production password requirements
+  if (env === 'production') {
+    if (password.length < 16) {
+      throw new Error(
+        `FATAL: Database password too short (${password.length} chars). Production requires 16+ characters.\n` +
+        'Generate a strong password: openssl rand -base64 32'
+      );
+    }
+
+    // Check for complexity (at least 3 of: lowercase, uppercase, numbers, special chars)
+    let complexity = 0;
+    if (/[a-z]/.test(password)) complexity++;
+    if (/[A-Z]/.test(password)) complexity++;
+    if (/[0-9]/.test(password)) complexity++;
+    if (/[^a-zA-Z0-9]/.test(password)) complexity++;
+
+    if (complexity < 3) {
+      throw new Error(
+        'FATAL: Database password lacks complexity.\n' +
+        'Password must contain at least 3 of: lowercase, uppercase, numbers, special characters.\n' +
+        'Generate a strong password: openssl rand -base64 32'
+      );
+    }
+  } else {
+    // Development warnings
+    if (password.length < 8) {
+      console.warn('⚠️  WARNING: Database password is very short. Consider using a stronger password even in development.');
+    }
   }
 }
 
@@ -335,6 +457,11 @@ export function initializeDatabaseFromEnv(): DatabaseConnection {
       );
     }
 
+    // SECURITY FIX #7: Validate password strength
+    if (parsedConfig.password) {
+      validatePasswordStrength(parsedConfig.password, env);
+    }
+
     config = {
       host: parsedConfig.host!,
       port: parsedConfig.port!,
@@ -367,12 +494,19 @@ export function initializeDatabaseFromEnv(): DatabaseConnection {
       );
     }
 
+    const password = process.env.DB_PASSWORD!;  // Fail if not set in production
+
+    // SECURITY FIX #7: Validate password strength
+    if (password) {
+      validatePasswordStrength(password, env);
+    }
+
     config = {
       host: process.env.DB_HOST ?? 'localhost',
       port: parseInt(process.env.DB_PORT ?? '5432', 10),
       database: process.env.DB_NAME ?? 'ideamine',
       user: process.env.DB_USER ?? 'ideamine',
-      password: process.env.DB_PASSWORD!,  // Fail if not set in production
+      password,
       maxConnections: parseInt(process.env.DB_MAX_CONNECTIONS ?? '20', 10),
       ssl: process.env.DB_SSL === 'true',
       sslCa: process.env.DB_SSL_CA,

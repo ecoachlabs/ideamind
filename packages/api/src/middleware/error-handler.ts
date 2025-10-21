@@ -6,13 +6,13 @@ const logger = pino({ name: 'error-handler' });
 export interface ApiError extends Error {
   statusCode?: number;
   code?: string;
-  details?: any;
+  details?: unknown;
 }
 
 export class BadRequestError extends Error implements ApiError {
   statusCode = 400;
   code = 'BAD_REQUEST';
-  constructor(message: string, public details?: any) {
+  constructor(message: string, public details?: unknown) {
     super(message);
     this.name = 'BadRequestError';
   }
@@ -48,7 +48,7 @@ export class NotFoundError extends Error implements ApiError {
 export class ConflictError extends Error implements ApiError {
   statusCode = 409;
   code = 'CONFLICT';
-  constructor(message: string, public details?: any) {
+  constructor(message: string, public details?: unknown) {
     super(message);
     this.name = 'ConflictError';
   }
@@ -57,7 +57,7 @@ export class ConflictError extends Error implements ApiError {
 export class InternalServerError extends Error implements ApiError {
   statusCode = 500;
   code = 'INTERNAL_SERVER_ERROR';
-  constructor(message: string = 'Internal server error', public details?: any) {
+  constructor(message: string = 'Internal server error', public details?: unknown) {
     super(message);
     this.name = 'InternalServerError';
   }

@@ -1,7 +1,7 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { Pool } from 'pg';
+import { Router, Response, NextFunction } from 'express';
 import { EventLedger } from '@ideamine/orchestrator-core/ledger';
 import { BadRequestError, NotFoundError } from '../middleware/error-handler';
+import { IdeaMineRequest } from '../types/express';
 
 const router = Router();
 
@@ -9,9 +9,9 @@ const router = Router();
  * GET /api/events
  * Query events with optional filtering
  */
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', async (req: IdeaMineRequest, res: Response, next: NextFunction) => {
   try {
-    const db = (req as any).db as Pool;
+    const { db } = req;
     const {
       runId,
       phase,
@@ -47,9 +47,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
  * GET /api/events/runs/:runId
  * Get full event timeline for a run
  */
-router.get('/runs/:runId', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/runs/:runId', async (req: IdeaMineRequest, res: Response, next: NextFunction) => {
   try {
-    const db = (req as any).db as Pool;
+    const { db } = req;
     const { runId } = req.params;
 
     const ledger = new EventLedger(db);
@@ -69,9 +69,9 @@ router.get('/runs/:runId', async (req: Request, res: Response, next: NextFunctio
  * GET /api/events/runs/:runId/phases/:phase
  * Get events for a specific phase in a run
  */
-router.get('/runs/:runId/phases/:phase', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/runs/:runId/phases/:phase', async (req: IdeaMineRequest, res: Response, next: NextFunction) => {
   try {
-    const db = (req as any).db as Pool;
+    const { db } = req;
     const { runId, phase } = req.params;
 
     const ledger = new EventLedger(db);
@@ -92,9 +92,9 @@ router.get('/runs/:runId/phases/:phase', async (req: Request, res: Response, nex
  * GET /api/events/runs/:runId/stats
  * Get event statistics for a run
  */
-router.get('/runs/:runId/stats', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/runs/:runId/stats', async (req: IdeaMineRequest, res: Response, next: NextFunction) => {
   try {
-    const db = (req as any).db as Pool;
+    const { db } = req;
     const { runId } = req.params;
 
     const ledger = new EventLedger(db);

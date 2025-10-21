@@ -1,6 +1,5 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { Pool } from 'pg';
-import { Server as SocketIOServer } from 'socket.io';
 import { RunManager } from '@ideamine/orchestrator-core/run';
 import { PhaseCoordinator } from '@ideamine/orchestrator-core/phase';
 import { BudgetTracker } from '@ideamine/orchestrator-core/budget';
@@ -11,6 +10,16 @@ import { ClarificationLoop } from '@ideamine/orchestrator-core/clarification';
 import { KnowledgeRefinery } from '@ideamine/orchestrator-core/knowledge-refinery';
 import { BadRequestError, NotFoundError } from '../middleware/error-handler';
 import { registerAllAgents } from '@ideamine/orchestrator-core/agents';
+import { validate } from '../middleware/validation';
+import {
+  createRunSchema,
+  getRunSchema,
+  listRunsSchema,
+  pauseRunSchema,
+  resumeRunSchema,
+  cancelRunSchema,
+} from '../schemas/runs';
+import { IdeaMineRequest } from '../types/express';
 
 const router = Router();
 
@@ -38,12 +47,11 @@ function getRunManager(db: Pool, anthropicApiKey: string): RunManager {
 /**
  * POST /api/runs
  * Create and start a new run
+ * SECURITY FIX #11: Added input validation
  */
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', validate(createRunSchema), async (req: IdeaMineRequest, res: Response, next: NextFunction) => {
   try {
-    const db = (req as any).db as Pool;
-    const config = (req as any).config;
-    const io = (req as any).io as SocketIOServer;
+    const { db, config, io } = req;
 
     const {
       runId,
@@ -53,17 +61,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       options,
     } = req.body;
 
-    // Validation
-    if (!runId) {
-      throw new BadRequestError('runId is required');
-    }
-    if (!phases || !Array.isArray(phases) || phases.length === 0) {
-      throw new BadRequestError('phases array is required and cannot be empty');
-    }
-    if (!initialContext) {
-      throw new BadRequestError('initialContext is required');
-    }
-
+    // Input already validated by middleware
     const runManager = getRunManager(db, config.anthropicApiKey);
 
     // Emit real-time updates
@@ -106,10 +104,10 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
             checkpoint_interval_phases: 2,
           },
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         io.to(`run:${runId}`).emit('run:error', {
           runId,
-          error: error.message,
+          error: error instanceof Error ? error.message : 'Unknown error occurred',
         });
       }
     });
@@ -127,11 +125,11 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 /**
  * GET /api/runs/:runId
  * Get run status and details
+ * SECURITY FIX #11: Added input validation
  */
-router.get('/:runId', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:runId', validate(getRunSchema), async (req: IdeaMineRequest, res: Response, next: NextFunction) => {
   try {
-    const db = (req as any).db as Pool;
-    const config = (req as any).config;
+    const { db, config } = req;
     const { runId } = req.params;
 
     const runManager = getRunManager(db, config.anthropicApiKey);
@@ -150,11 +148,11 @@ router.get('/:runId', async (req: Request, res: Response, next: NextFunction) =>
 /**
  * GET /api/runs
  * List all runs with optional filtering
+ * SECURITY FIX #11: Added input validation
  */
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', validate(listRunsSchema), async (req: IdeaMineRequest, res: Response, next: NextFunction) => {
   try {
-    const db = (req as any).db as Pool;
-    const config = (req as any).config;
+    const { db, config } = req;
 
     const { status, limit = 50, offset = 0 } = req.query;
 
@@ -181,11 +179,11 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 /**
  * POST /api/runs/:runId/pause
  * Pause a running run
+ * SECURITY FIX #11: Added input validation
  */
-router.post('/:runId/pause', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:runId/pause', validate(pauseRunSchema), async (req: IdeaMineRequest, res: Response, next: NextFunction) => {
   try {
-    const db = (req as any).db as Pool;
-    const config = (req as any).config;
+    const { db, config } = req;
     const { runId } = req.params;
 
     const runManager = getRunManager(db, config.anthropicApiKey);
@@ -204,11 +202,11 @@ router.post('/:runId/pause', async (req: Request, res: Response, next: NextFunct
 /**
  * POST /api/runs/:runId/resume
  * Resume a paused run
+ * SECURITY FIX #11: Added input validation
  */
-router.post('/:runId/resume', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:runId/resume', validate(resumeRunSchema), async (req: IdeaMineRequest, res: Response, next: NextFunction) => {
   try {
-    const db = (req as any).db as Pool;
-    const config = (req as any).config;
+    const { db, config } = req;
     const { runId } = req.params;
 
     const runManager = getRunManager(db, config.anthropicApiKey);
@@ -227,11 +225,11 @@ router.post('/:runId/resume', async (req: Request, res: Response, next: NextFunc
 /**
  * POST /api/runs/:runId/cancel
  * Cancel a running run
+ * SECURITY FIX #11: Added input validation
  */
-router.post('/:runId/cancel', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:runId/cancel', validate(cancelRunSchema), async (req: IdeaMineRequest, res: Response, next: NextFunction) => {
   try {
-    const db = (req as any).db as Pool;
-    const config = (req as any).config;
+    const { db, config } = req;
     const { runId } = req.params;
 
     const runManager = getRunManager(db, config.anthropicApiKey);

@@ -39,6 +39,7 @@ import {
   getPhaseOrder,
   getNextPhase,
 } from './index';
+import { generatePrefixedId } from './utils/id-generator';
 
 export interface EnhancedOrchestratorConfig {
   // Storage backend for recorder
@@ -154,7 +155,8 @@ export class EnhancedOrchestrator {
    */
   async executeWorkflow(input: WorkflowInput): Promise<WorkflowOutput> {
     const startTime = Date.now();
-    const runId = `run-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // SECURITY FIX #6: Use cryptographically secure UUID generation
+    const runId = generatePrefixedId('run');
 
     const completedPhases: string[] = [];
     const artifacts: Record<string, any[]> = {};
