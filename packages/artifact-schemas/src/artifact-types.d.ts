@@ -1,0 +1,52 @@
+import { z } from 'zod';
+/**
+ * Artifact types produced by different phases
+ */
+export declare enum ArtifactType {
+    IDEA_SPEC = "IDEA_SPEC",
+    INTAKE_SUMMARY = "INTAKE_SUMMARY",
+    STRATEGY_DOC = "STRATEGY_DOC",
+    COMPETITIVE_ANALYSIS = "COMPETITIVE_ANALYSIS",
+    TECH_STACK_PROPOSAL = "TECH_STACK_PROPOSAL",
+    CRITIQUE_REPORT = "CRITIQUE_REPORT",
+    RISK_ASSESSMENT = "RISK_ASSESSMENT",
+    PRD_DOCUMENT = "PRD_DOCUMENT",
+    USER_PERSONAS = "USER_PERSONAS",
+    FEATURE_SPECS = "FEATURE_SPECS",
+    VIABILITY_ANALYSIS = "VIABILITY_ANALYSIS",
+    GO_TO_MARKET_PLAN = "GO_TO_MARKET_PLAN",
+    PRICING_MODEL = "PRICING_MODEL",
+    ARCHITECTURE_DOC = "ARCHITECTURE_DOC",
+    API_SPEC = "API_SPEC",
+    DATA_MODEL = "DATA_MODEL",
+    INFRASTRUCTURE_PLAN = "INFRASTRUCTURE_PLAN",
+    REPOSITORY_CONFIG = "REPOSITORY_CONFIG",
+    CI_CD_CONFIG = "CI_CD_CONFIG",
+    DEV_ENVIRONMENT = "DEV_ENVIRONMENT",
+    SOURCE_CODE = "SOURCE_CODE",
+    TEST_SUITE = "TEST_SUITE",
+    CODE_REVIEW_REPORT = "CODE_REVIEW_REPORT",
+    TEST_RESULTS = "TEST_RESULTS",
+    SECURITY_SCAN_REPORT = "SECURITY_SCAN_REPORT",
+    PERFORMANCE_REPORT = "PERFORMANCE_REPORT",
+    UI_AUDIT_REPORT = "UI_AUDIT_REPORT",
+    ACCESSIBILITY_REPORT = "ACCESSIBILITY_REPORT",
+    RELEASE_PACKAGE = "RELEASE_PACKAGE",
+    DEPLOYMENT_CONFIG = "DEPLOYMENT_CONFIG",
+    RELEASE_NOTES = "RELEASE_NOTES",
+    BETA_ANALYTICS = "BETA_ANALYTICS",
+    USER_FEEDBACK = "USER_FEEDBACK",
+    DOCUMENTATION = "DOCUMENTATION",
+    MARKETING_CONTENT = "MARKETING_CONTENT"
+}
+/**
+ * Base artifact metadata
+ */
+export declare const ArtifactMetadataSchema: any;
+export type ArtifactMetadata = z.infer<typeof ArtifactMetadataSchema>;
+/**
+ * Artifact reference for linking between phases
+ */
+export declare const ArtifactReferenceSchema: any;
+export type ArtifactReference = z.infer<typeof ArtifactReferenceSchema>;
+//# sourceMappingURL=artifact-types.d.ts.map

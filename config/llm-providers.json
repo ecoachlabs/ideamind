@@ -1,0 +1,182 @@
+{
+  "$schema": "./llm-providers.schema.json",
+  "description": "LLM provider configuration for IdeaMine phases. Platform admins can switch providers per phase for optimal performance.",
+  "defaultProvider": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.7,
+    "maxTokens": 4096
+  },
+  "phaseConfigs": [
+    {
+      "phase": "INTAKE",
+      "agentType": "question-agent",
+      "provider": {
+        "provider": "anthropic",
+        "model": "claude-3-5-sonnet-20241022",
+        "temperature": 0.7,
+        "maxTokens": 4096
+      }
+    },
+    {
+      "phase": "INTAKE",
+      "agentType": "answer-agent",
+      "provider": {
+        "provider": "anthropic",
+        "model": "claude-3-5-sonnet-20241022",
+        "temperature": 0.5,
+        "maxTokens": 8192
+      }
+    },
+    {
+      "phase": "INTAKE",
+      "agentType": "validator",
+      "provider": {
+        "provider": "anthropic",
+        "model": "claude-3-5-sonnet-20241022",
+        "temperature": 0.3,
+        "maxTokens": 4096
+      }
+    },
+    {
+      "phase": "PRD",
+      "agentType": "question-agent",
+      "provider": {
+        "provider": "openai",
+        "model": "gpt-4o",
+        "temperature": 0.7,
+        "maxTokens": 4096,
+        "comment": "GPT-4o excels at structured requirements analysis"
+      }
+    },
+    {
+      "phase": "PRD",
+      "agentType": "answer-agent",
+      "provider": {
+        "provider": "anthropic",
+        "model": "claude-3-5-sonnet-20241022",
+        "temperature": 0.5,
+        "maxTokens": 8192,
+        "comment": "Claude provides detailed, well-cited answers"
+      }
+    },
+    {
+      "phase": "PRD",
+      "agentType": "validator",
+      "provider": {
+        "provider": "anthropic",
+        "model": "claude-3-5-sonnet-20241022",
+        "temperature": 0.3,
+        "maxTokens": 4096
+      }
+    },
+    {
+      "phase": "ARCH",
+      "agentType": "question-agent",
+      "provider": {
+        "provider": "openai",
+        "model": "o1-preview",
+        "temperature": 1.0,
+        "maxTokens": 8192,
+        "comment": "o1 excels at deep architectural reasoning"
+      }
+    },
+    {
+      "phase": "ARCH",
+      "agentType": "answer-agent",
+      "provider": {
+        "provider": "anthropic",
+        "model": "claude-3-5-sonnet-20241022",
+        "temperature": 0.5,
+        "maxTokens": 8192
+      }
+    },
+    {
+      "phase": "ARCH",
+      "agentType": "validator",
+      "provider": {
+        "provider": "anthropic",
+        "model": "claude-3-5-sonnet-20241022",
+        "temperature": 0.3,
+        "maxTokens": 4096
+      }
+    },
+    {
+      "phase": "CODING",
+      "agentType": "question-agent",
+      "provider": {
+        "provider": "openai",
+        "model": "gpt-4o",
+        "temperature": 0.7,
+        "maxTokens": 4096,
+        "comment": "GPT-4o performs well for code analysis questions"
+      }
+    },
+    {
+      "phase": "CODING",
+      "agentType": "answer-agent",
+      "provider": {
+        "provider": "anthropic",
+        "model": "claude-3-5-sonnet-20241022",
+        "temperature": 0.5,
+        "maxTokens": 8192,
+        "comment": "Claude excels at code explanation and documentation"
+      }
+    },
+    {
+      "phase": "CODING",
+      "agentType": "validator",
+      "provider": {
+        "provider": "anthropic",
+        "model": "claude-3-5-sonnet-20241022",
+        "temperature": 0.3,
+        "maxTokens": 4096
+      }
+    },
+    {
+      "phase": "QA",
+      "agentType": "question-agent",
+      "provider": {
+        "provider": "google",
+        "model": "gemini-1.5-pro",
+        "temperature": 0.7,
+        "maxTokens": 4096,
+        "comment": "Gemini Pro is cost-effective for test scenario generation"
+      }
+    },
+    {
+      "phase": "QA",
+      "agentType": "answer-agent",
+      "provider": {
+        "provider": "google",
+        "model": "gemini-1.5-pro",
+        "temperature": 0.5,
+        "maxTokens": 8192
+      }
+    },
+    {
+      "phase": "QA",
+      "agentType": "validator",
+      "provider": {
+        "provider": "anthropic",
+        "model": "claude-3-5-haiku-20241022",
+        "temperature": 0.3,
+        "maxTokens": 4096,
+        "comment": "Haiku is fast and cost-effective for validation"
+      }
+    }
+  ],
+  "notes": {
+    "providers": {
+      "anthropic": "Claude models excel at detailed reasoning, citations, and structured output. Best for answers and validation.",
+      "openai": "GPT-4o and o1 models excel at deep reasoning and complex analysis. Best for challenging questions.",
+      "google": "Gemini models offer excellent cost/performance ratio. Best for high-volume phases."
+    },
+    "recommendations": {
+      "questionAgent": "Use reasoning-heavy models (o1, GPT-4, Claude Sonnet) for complex question generation",
+      "answerAgent": "Use Claude for detailed, well-cited answers with evidence",
+      "validator": "Use fast, consistent models (Haiku, GPT-4o-mini) for validation to reduce costs"
+    },
+    "switching": "To switch providers, simply update the 'provider' and 'model' fields. Changes take effect on next agent spawn."
+  }
+}

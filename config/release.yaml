@@ -1,0 +1,72 @@
+# Release Phase Configuration
+# Release preparation and deployment planning
+
+phase: release
+description: Prepare release package and deployment artifacts
+
+parallelism: sequential
+
+aggregation_strategy: merge
+
+agents:
+  - ReleaseNotesAgent
+  - DeploymentAgent
+  - DocumentationAgent
+  - ChangelogAgent
+
+budgets:
+  tokens: 100000
+  tools_minutes: 15
+  wallclock_minutes: 45
+
+guards:
+  - type: release_completeness
+    config:
+      required_artifacts:
+        - release_notes
+        - deployment_plan
+        - rollback_plan
+        - documentation
+
+  - type: version_validation
+    config:
+      semver_format: true
+
+gate:
+  pass_threshold: 0.85
+  auto_fix_enabled: true
+  max_attempts: 3
+  rubrics:
+    completeness: 0.40
+    documentation: 0.30
+    grounding: 0.30
+
+qav:
+  enabled: true
+  max_questions: 10
+  min_grounding_score: 0.85
+  max_iterations: 3
+
+artifacts:
+  - type: ReleaseNotes
+    required: true
+  - type: DeploymentPlan
+    required: true
+  - type: RollbackPlan
+    required: true
+  - type: Documentation
+    required: true
+  - type: ReleaseDossier
+    required: true
+
+dependencies:
+  - aesthetic
+
+checkpoints:
+  enabled: true
+  interval_minutes: 2
+
+retries:
+  max_attempts: 3
+  strategy: exponential
+  base_delay_ms: 1500

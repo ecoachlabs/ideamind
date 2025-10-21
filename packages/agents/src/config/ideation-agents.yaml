@@ -1,0 +1,125 @@
+# Ideation Phase Agent Configurations
+# Version: 1.0.0
+#
+# These 4 agents run in PARALLEL for 4x performance improvement
+
+agents:
+  - id: "ideation-strategy-agent"
+    name: "Strategy Agent"
+    description: "Defines product vision, mission, and strategic pillars"
+    phase: "IDEATION"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.4  # Creative but focused
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0  # No tools needed
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 15000  # 15 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "ideation-competitive-agent"
+    name: "Competitive Analyst Agent"
+    description: "Analyzes market size, competitors, trends, and opportunities"
+    phase: "IDEATION"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Analytical, precise
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 15000  # 15 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "ideation-techstack-agent"
+    name: "Tech Stack Recommender Agent"
+    description: "Recommends optimal frontend, backend, database, and infrastructure"
+    phase: "IDEATION"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Precise technical recommendations
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 15000  # 15 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "ideation-persona-agent"
+    name: "User Persona Builder Agent"
+    description: "Creates detailed user personas with demographics, psychographics, and behaviors"
+    phase: "IDEATION"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.5  # More creative for persona development
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 15000  # 15 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"

@@ -1,0 +1,88 @@
+name: guard.quantSanity
+version: 1.0.0
+summary: Validate numeric answers for sanity and consistency
+description: |
+  Validates numeric values in answers for sanity, unit consistency, and plausibility.
+  Checks for common errors like unit mismatches, out-of-range values, and illogical numbers.
+  Used by Answer Agents and Validators to ensure numeric claims are reasonable.
+
+runtime: docker
+image: ghcr.io/ideamine/guard-quant-sanity:1.0.0
+entrypoint: ["python", "/app/main.py"]
+
+capabilities:
+  - guard
+  - numeric-validation
+  - unit-checking
+  - sanity-check
+
+tags:
+  - phase:all
+  - guard-tool
+  - validation
+
+input_schema:
+  type: object
+  required: [answer]
+  properties:
+    answer:
+      type: string
+      description: The answer containing numeric values to validate
+    context:
+      type: object
+      description: Optional context for domain-specific validation
+      properties:
+        phase:
+          type: string
+        question_type:
+          type: string
+          enum: [performance, cost, time, size, count, rate, percentage]
+
+output_schema:
+  type: object
+  required: [is_sane, issues]
+  properties:
+    is_sane:
+      type: boolean
+      description: Whether all numeric values pass sanity checks
+    issues:
+      type: array
+      description: List of detected issues
+      items:
+        type: object
+        required: [issue_type, description]
+        properties:
+          issue_type:
+            type: string
+            enum: [unit_mismatch, out_of_range, implausible, missing_unit, inconsistent]
+          description:
+            type: string
+          value:
+            type: string
+          severity:
+            type: string
+            enum: [critical, high, medium, low]
+    extracted_values:
+      type: array
+      description: All numeric values extracted from answer
+      items:
+        type: object
+        properties:
+          value:
+            type: number
+          unit:
+            type: string
+          context:
+            type: string
+
+timeout_ms: 6000
+cost_estimate_usd: 0.003
+
+security:
+  run_as_non_root: true
+  filesystem: read_only
+  network: none
+  secrets: []
+
+grounding_required: false
+idempotent: true

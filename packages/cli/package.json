@@ -1,0 +1,12 @@
+{
+  "name": "@ideamine/cli",
+  "version": "1.0.0",
+  "description": "IdeaMine CLI",
+  "bin": {
+    "ideamine": "./bin/ideamine"
+  },
+  "dependencies": {
+    "commander": "^11.0.0",
+    "inquirer": "^9.0.0"
+  }
+}

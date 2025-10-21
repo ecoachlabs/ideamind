@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: ideamine-postgres
+    environment:
+      POSTGRES_USER: ideamine
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ideamine_dev}
+      POSTGRES_DB: ideamine_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ideamine"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ideamine
+
+  redis:
+    image: redis:7-alpine
+    container_name: ideamine-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ideamine
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.orchestrator
+    container_name: ideamine-orchestrator
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://ideamine:${POSTGRES_PASSWORD:-ideamine_dev}@postgres:5432/ideamine_dev
+      REDIS_URL: redis://redis:6379
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      PORT: 9000
+    ports:
+      - "9000:9000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./config:/app/config:ro
+      - orchestrator_logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - ideamine
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: ideamine-worker
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://ideamine:${POSTGRES_PASSWORD:-ideamine_dev}@postgres:5432/ideamine_dev
+      REDIS_URL: redis://redis:6379
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      WORKER_ID: ${WORKER_ID:-worker-1}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      orchestrator:
+        condition: service_started
+    volumes:
+      - ./config:/app/config:ro
+      - worker_workspace:/app/workspace
+      - worker_logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - ideamine
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: ideamine-api
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://ideamine:${POSTGRES_PASSWORD:-ideamine_dev}@postgres:5432/ideamine_dev
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      PORT: 9002
+    ports:
+      - "9002:9002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      orchestrator:
+        condition: service_started
+    volumes:
+      - ./config:/app/config:ro
+      - api_logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - ideamine
+
+volumes:
+  postgres_data:
+  redis_data:
+  orchestrator_logs:
+  worker_workspace:
+  worker_logs:
+  api_logs:
+
+networks:
+  ideamine:
+    driver: bridge

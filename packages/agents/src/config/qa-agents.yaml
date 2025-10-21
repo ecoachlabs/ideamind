@@ -1,0 +1,126 @@
+# QA Phase Agent Configurations
+# Version: 1.0.0
+#
+# These 4 agents run in PARALLEL for 3.6x performance improvement
+# Sequential: ~58s, Parallel: ~16s
+
+agents:
+  - id: "qa-e2e-test-runner-agent"
+    name: "E2E Test Runner Agent"
+    description: "Generates end-to-end test scenarios covering user journeys"
+    phase: "QA"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Precise for test generation
+      maxTokens: 14000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0  # No tools needed
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 14000
+      maxCostUsd: 0.50
+
+    timeout: 15000  # 15 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "qa-load-tester-agent"
+    name: "Load Tester Agent"
+    description: "Generates load and performance test scenarios"
+    phase: "QA"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Precise for test generation
+      maxTokens: 13000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 13000
+      maxCostUsd: 0.50
+
+    timeout: 14000  # 14 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "qa-security-scanner-agent"
+    name: "Security Scanner Agent"
+    description: "Performs comprehensive security vulnerability scanning"
+    phase: "QA"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Analytical precision
+      maxTokens: 15000  # Higher for comprehensive security analysis
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 15000
+      maxCostUsd: 0.50
+
+    timeout: 16000  # 16 seconds - longer for security analysis
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "qa-visual-regression-tester-agent"
+    name: "Visual Regression Tester Agent"
+    description: "Generates visual regression tests for UI components"
+    phase: "QA"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Precise for test generation
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 13000  # 13 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"

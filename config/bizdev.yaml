@@ -1,0 +1,68 @@
+# BizDev Phase Configuration
+# Business model and go-to-market strategy
+
+phase: bizdev
+description: Business model, pricing, and GTM strategy
+
+parallelism: parallel
+
+aggregation_strategy: merge
+
+agents:
+  - BusinessModelAgent
+  - PricingAgent
+  - GTMAgent
+  - MetricsAgent
+
+budgets:
+  tokens: 100000
+  tools_minutes: 10
+  wallclock_minutes: 30
+
+guards:
+  - type: completeness
+    config:
+      required_sections:
+        - business_model
+        - pricing_strategy
+        - gtm_plan
+        - success_metrics
+
+  - type: financial_viability
+    config:
+      min_revenue_confidence: 0.7
+
+gate:
+  pass_threshold: 0.75
+  auto_fix_enabled: true
+  max_attempts: 3
+  rubrics:
+    completeness: 0.30
+    viability: 0.40
+    grounding: 0.30
+
+qav:
+  enabled: true
+  max_questions: 10
+  min_grounding_score: 0.80
+  max_iterations: 3
+
+artifacts:
+  - type: BusinessPlan
+    required: true
+  - type: PricingModel
+    required: true
+  - type: GTMStrategy
+    required: true
+
+dependencies:
+  - prd
+
+checkpoints:
+  enabled: true
+  interval_minutes: 2
+
+retries:
+  max_attempts: 3
+  strategy: exponential
+  base_delay_ms: 1500

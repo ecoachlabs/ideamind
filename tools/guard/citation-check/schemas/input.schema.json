@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Citation Check Input",
+  "description": "Input for verifying citations and grounding",
+  "properties": {
+    "content": {
+      "type": "string",
+      "description": "AI-generated content to verify",
+      "minLength": 1
+    },
+    "sources": {
+      "type": "array",
+      "description": "Source documents for verification",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique source identifier"
+          },
+          "title": {
+            "type": "string",
+            "description": "Source title or name"
+          },
+          "content": {
+            "type": "string",
+            "description": "Source content text"
+          },
+          "url": {
+            "type": "string",
+            "description": "Optional source URL",
+            "format": "uri"
+          }
+        },
+        "required": ["id", "title", "content"]
+      },
+      "minItems": 1
+    },
+    "citation_format": {
+      "type": "string",
+      "description": "Expected citation format",
+      "enum": ["inline", "footnote", "markdown", "custom"],
+      "default": "inline"
+    },
+    "strict_mode": {
+      "type": "boolean",
+      "description": "Require citations for all claims",
+      "default": false
+    },
+    "min_confidence": {
+      "type": "number",
+      "description": "Minimum confidence threshold (0-1)",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.7
+    }
+  },
+  "required": ["content", "sources"]
+}

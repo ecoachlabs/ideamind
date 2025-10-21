@@ -1,0 +1,94 @@
+id: guard.secretScan
+version: 1.0.0
+name: Secrets Scanner
+description: Scan repositories and container images for leaked secrets using TruffleHog and Gitleaks
+category: security
+
+inputs:
+  target:
+    type: string
+    description: Git repository ref or container image to scan
+    required: true
+
+  type:
+    type: string
+    description: Type of target (repository or container_image)
+    enum: [repository, container_image]
+    default: repository
+
+  paths:
+    type: array
+    description: Specific paths to scan (optional, defaults to all)
+    items:
+      type: string
+    required: false
+
+  exclude:
+    type: array
+    description: Paths to exclude from scanning
+    items:
+      type: string
+    required: false
+
+  scanHistory:
+    type: boolean
+    description: Scan git history (not just HEAD)
+    default: true
+
+  layers:
+    type: string
+    description: For container images - which layers to scan
+    enum: [all, last]
+    default: all
+
+output:
+  type: object
+  properties:
+    findings:
+      type: array
+      description: List of detected secrets
+      items:
+        type: object
+        properties:
+          type:
+            type: string
+            description: Secret type (aws_key, github_token, private_key, etc.)
+          file:
+            type: string
+            description: File where secret was found
+          line:
+            type: number
+            description: Line number
+          matched:
+            type: string
+            description: Matched secret (REDACTED)
+          confidence:
+            type: number
+            description: Detection confidence (0-1)
+    scanned:
+      type: string
+      description: Target that was scanned
+    toolVersion:
+      type: string
+      description: Version of scanning tool used
+
+timeout_seconds: 600  # 10 minutes max
+
+resources:
+  memory: 2Gi
+  cpu: 1000m
+
+security:
+  sandbox: true
+  network: required  # Need network to pull repos/images
+  filesystem: read-only
+
+metadata:
+  author: IdeaMine Security Team
+  license: MIT
+  tags:
+    - security
+    - secrets
+    - trufflehog
+    - gitleaks
+  documentation: https://docs.ideamine.io/tools/secret-scan

@@ -1,0 +1,59 @@
+name: guard.citationCheck
+version: 1.0.0
+summary: Verify AI-generated content has proper citations and grounding
+owner: guard-team
+capabilities:
+  - grounding
+  - citation
+  - verification
+  - guard
+
+input_schema:
+  $ref: "schemas/input.schema.json"
+
+output_schema:
+  $ref: "schemas/output.schema.json"
+
+runtime: docker
+image: ghcr.io/ideamine/citation-check:1.0.0
+entrypoint: ["node", "/app/dist/main.js"]
+
+timeout_ms: 30000
+cpu: "250m"
+memory: "256Mi"
+
+egress:
+  allow: []  # No external network access needed
+
+secrets: []
+
+license: MIT
+
+security:
+  run_as_non_root: true
+  filesystem: read_only
+  network: restricted
+
+guardrails:
+  grounding_required: false
+  max_tokens: 0
+
+description: |
+  Validates that AI-generated content includes proper citations and is grounded
+  in provided source material. Detects hallucinations and unsupported claims.
+
+  Features:
+  - Citation format validation
+  - Source material verification
+  - Claim-to-source mapping
+  - Hallucination detection
+  - Confidence scoring
+
+  Use this guard to ensure AI outputs are trustworthy and verifiable.
+
+tags:
+  - guard
+  - citation
+  - grounding
+  - verification
+  - hallucination

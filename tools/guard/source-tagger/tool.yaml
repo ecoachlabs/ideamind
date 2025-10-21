@@ -1,0 +1,78 @@
+name: guard.sourceTagger
+version: 1.0.0
+summary: Tag evidence sources in answers with artifact IDs
+description: |
+  Identifies and tags evidence citations in answers, linking them to source artifacts.
+  Verifies that claims reference valid artifact IDs from the approved evidence base.
+  Used by Answer Agents to ensure proper grounding.
+
+runtime: docker
+image: ghcr.io/ideamine/guard-source-tagger:1.0.0
+entrypoint: ["python", "/app/main.py"]
+
+capabilities:
+  - guard
+  - evidence-tagging
+  - citation-verification
+  - grounding
+
+tags:
+  - phase:all
+  - guard-tool
+  - evidence-check
+
+input_schema:
+  type: object
+  required: [answer, artifacts]
+  properties:
+    answer:
+      type: string
+      description: The answer text to tag with evidence sources
+    artifacts:
+      type: array
+      description: Available artifacts that can be cited
+      items:
+        type: object
+        required: [artifact_id, type]
+        properties:
+          artifact_id:
+            type: string
+          type:
+            type: string
+          content_summary:
+            type: string
+
+output_schema:
+  type: object
+  required: [tagged_answer, evidence_map]
+  properties:
+    tagged_answer:
+      type: string
+      description: Answer with evidence tags inserted
+    evidence_map:
+      type: object
+      description: Mapping of evidence references to artifact IDs
+      additionalProperties:
+        type: string
+    missing_citations:
+      type: array
+      description: Claims that lack evidence tags
+      items:
+        type: string
+    invalid_citations:
+      type: array
+      description: Evidence tags that reference non-existent artifacts
+      items:
+        type: string
+
+timeout_ms: 8000
+cost_estimate_usd: 0.005
+
+security:
+  run_as_non_root: true
+  filesystem: read_only
+  network: none
+  secrets: []
+
+grounding_required: false
+idempotent: true

@@ -1,0 +1,73 @@
+# Build Phase Configuration
+# Code generation and implementation
+
+phase: build
+description: Generate code and implement functionality
+
+parallelism: 2  # 2 agents at a time for controlled concurrency
+
+aggregation_strategy: merge
+
+agents:
+  - FrontendAgent
+  - BackendAgent
+  - DatabaseAgent
+  - IntegrationAgent
+  - TestAgent
+
+budgets:
+  tokens: 500000
+  tools_minutes: 60
+  wallclock_minutes: 180
+
+guards:
+  - type: compilation
+    config:
+      must_compile: true
+
+  - type: test_coverage
+    config:
+      min_coverage_percent: 70
+
+  - type: lint
+    config:
+      max_errors: 0
+      max_warnings: 10
+
+gate:
+  pass_threshold: 0.85
+  auto_fix_enabled: true
+  max_attempts: 5
+  rubrics:
+    compilation: 0.30
+    tests: 0.30
+    coverage: 0.20
+    grounding: 0.20
+
+qav:
+  enabled: true
+  max_questions: 25
+  min_grounding_score: 0.85
+  max_iterations: 5
+
+artifacts:
+  - type: SourceCode
+    required: true
+  - type: TestSuite
+    required: true
+  - type: CoverageReport
+    required: true
+  - type: RepoManifest
+    required: true
+
+dependencies:
+  - architecture
+
+checkpoints:
+  enabled: true
+  interval_minutes: 5
+
+retries:
+  max_attempts: 5
+  strategy: exponential
+  base_delay_ms: 3000

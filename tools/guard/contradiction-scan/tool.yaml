@@ -1,0 +1,112 @@
+name: guard.contradictionScan
+version: 1.0.0
+summary: Detect contradictions between Q/A pairs in Knowledge Map
+description: |
+  Scans new Q/A pairs against existing Knowledge Map entries to detect conflicts.
+  Identifies logical contradictions, incompatible values, and conflicting decisions.
+  Critical for maintaining Knowledge Map consistency and preventing contradictory requirements.
+
+runtime: docker
+image: ghcr.io/ideamine/guard-contradiction-scan:1.0.0
+entrypoint: ["python", "/app/main.py"]
+
+capabilities:
+  - guard
+  - contradiction-detection
+  - consistency-check
+  - knowledge-map
+
+tags:
+  - phase:all
+  - guard-tool
+  - km-validation
+
+input_schema:
+  type: object
+  required: [new_answer, existing_km_nodes]
+  properties:
+    new_answer:
+      type: object
+      description: The new Q/A pair to validate
+      required: [question_id, answer]
+      properties:
+        question_id:
+          type: string
+        question:
+          type: string
+        answer:
+          type: string
+        claims:
+          type: array
+          items:
+            type: string
+    existing_km_nodes:
+      type: array
+      description: Existing validated Q/A pairs in Knowledge Map
+      items:
+        type: object
+        required: [node_id, question, answer]
+        properties:
+          node_id:
+            type: string
+          question:
+            type: string
+          answer:
+            type: string
+          phase:
+            type: string
+          tags:
+            type: array
+            items:
+              type: string
+
+output_schema:
+  type: object
+  required: [contradictions, consistency_score]
+  properties:
+    contradictions:
+      type: array
+      description: Detected contradictions
+      items:
+        type: object
+        required: [conflict_with, conflict_type, description]
+        properties:
+          conflict_with:
+            type: string
+            description: Node ID that conflicts with new answer
+          conflict_type:
+            type: string
+            enum: [logical, value, decision, scope]
+            description: Type of contradiction
+          description:
+            type: string
+            description: Human-readable explanation of conflict
+          severity:
+            type: string
+            enum: [critical, high, medium, low]
+          conflicting_claims:
+            type: array
+            items:
+              type: string
+    consistency_score:
+      type: number
+      minimum: 0
+      maximum: 1
+      description: Overall consistency score (0 = major conflicts, 1 = no conflicts)
+    similar_nodes:
+      type: array
+      description: Similar KM nodes that don't conflict but are related
+      items:
+        type: string
+
+timeout_ms: 15000
+cost_estimate_usd: 0.02
+
+security:
+  run_as_non_root: true
+  filesystem: read_only
+  network: none
+  secrets: []
+
+grounding_required: false
+idempotent: true

@@ -1,0 +1,75 @@
+# QA Phase Configuration
+# Comprehensive quality assurance and testing
+
+phase: qa
+description: End-to-end testing, performance, and quality validation
+
+parallelism: parallel
+
+aggregation_strategy: merge
+
+agents:
+  - E2ETestAgent
+  - PerformanceAgent
+  - LoadTestAgent
+  - AccessibilityAgent
+  - CompatibilityAgent
+
+budgets:
+  tokens: 200000
+  tools_minutes: 40
+  wallclock_minutes: 90
+
+guards:
+  - type: test_pass_rate
+    config:
+      min_pass_rate: 0.95
+
+  - type: performance
+    config:
+      max_response_time_ms: 1000
+      min_throughput_rps: 100
+
+  - type: accessibility
+    config:
+      wcag_level: AA
+      max_violations: 0
+
+gate:
+  pass_threshold: 0.90
+  auto_fix_enabled: true
+  max_attempts: 5
+  rubrics:
+    test_pass_rate: 0.35
+    performance: 0.30
+    accessibility: 0.20
+    grounding: 0.15
+
+qav:
+  enabled: true
+  max_questions: 15
+  min_grounding_score: 0.85
+  max_iterations: 5
+
+artifacts:
+  - type: TestReport
+    required: true
+  - type: PerfReport
+    required: true
+  - type: A11yAudit
+    required: true
+  - type: CompatibilityMatrix
+    required: true
+
+dependencies:
+  - security
+  - story-loop
+
+checkpoints:
+  enabled: true
+  interval_minutes: 4
+
+retries:
+  max_attempts: 5
+  strategy: exponential
+  base_delay_ms: 2500

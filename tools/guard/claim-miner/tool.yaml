@@ -1,0 +1,80 @@
+name: guard.claimMiner
+version: 1.0.0
+summary: Extract atomic claims from text for evidence grounding
+description: |
+  Extracts individual, verifiable claims from answers or documentation.
+  Each claim is broken down into atomic statements that can be independently verified.
+  Used by Answer Agents to identify claims that need evidence citations.
+
+runtime: docker
+image: ghcr.io/ideamine/guard-claim-miner:1.0.0
+entrypoint: ["python", "/app/main.py"]
+
+capabilities:
+  - guard
+  - claim-extraction
+  - evidence-grounding
+  - nlp
+
+tags:
+  - phase:all
+  - guard-tool
+  - qa-validation
+
+input_schema:
+  type: object
+  required: [text]
+  properties:
+    text:
+      type: string
+      description: The text to extract claims from (answer, paragraph, etc.)
+    context:
+      type: object
+      description: Optional context (phase, question, etc.)
+      properties:
+        phase:
+          type: string
+        question_id:
+          type: string
+
+output_schema:
+  type: object
+  required: [claims]
+  properties:
+    claims:
+      type: array
+      description: List of extracted atomic claims
+      items:
+        type: object
+        required: [claim_id, text, type]
+        properties:
+          claim_id:
+            type: string
+            description: Unique identifier for this claim
+          text:
+            type: string
+            description: The atomic claim statement
+          type:
+            type: string
+            enum: [fact, assumption, estimate, opinion]
+            description: Type of claim
+          confidence:
+            type: number
+            minimum: 0
+            maximum: 1
+            description: Confidence in claim extraction (0-1)
+          requires_evidence:
+            type: boolean
+            description: Whether this claim requires evidence citation
+
+timeout_ms: 10000
+cost_estimate_usd: 0.01
+
+security:
+  run_as_non_root: true
+  filesystem: read_only
+  network: none
+  secrets: []
+
+grounding_required: false
+idempotent: true

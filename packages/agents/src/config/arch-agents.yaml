@@ -1,0 +1,125 @@
+# ARCH Phase Agent Configurations
+# Version: 1.0.0
+#
+# These 4 agents run in PARALLEL for 4x performance improvement
+
+agents:
+  - id: "arch-solution-architect-agent"
+    name: "Solution Architect Agent"
+    description: "Designs comprehensive system architecture with ADRs and component design"
+    phase: "ARCH"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Analytical precision for architecture design
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0  # No tools needed
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 15000  # 15 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "arch-api-designer-agent"
+    name: "API Designer Agent"
+    description: "Designs RESTful/GraphQL API contracts with comprehensive endpoint specifications"
+    phase: "ARCH"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Precise API contract design
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 12000  # 12 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "arch-data-modeler-agent"
+    name: "Data Modeler Agent"
+    description: "Designs database schemas with entities, relationships, and optimization strategies"
+    phase: "ARCH"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Analytical for data modeling
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 12000  # 12 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "arch-infrastructure-planner-agent"
+    name: "Infrastructure Planner Agent"
+    description: "Plans cloud infrastructure with cost estimates and deployment strategies"
+    phase: "ARCH"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Analytical for infrastructure planning
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 12000  # 12 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"

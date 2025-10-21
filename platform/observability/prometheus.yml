@@ -1,0 +1,47 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'ideamine-dev'
+    environment: 'local'
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # NATS metrics
+  - job_name: 'nats'
+    static_configs:
+      - targets: ['nats:8222']
+
+  # PostgreSQL metrics (requires postgres_exporter)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    # Disabled by default, uncomment when postgres_exporter is added
+
+  # MinIO metrics
+  - job_name: 'minio'
+    metrics_path: /minio/v2/metrics/cluster
+    static_configs:
+      - targets: ['minio:9000']
+
+  # Orchestrator service (when running)
+  - job_name: 'orchestrator'
+    static_configs:
+      - targets: ['host.docker.internal:3000']
+    metrics_path: /metrics
+
+  # Gatekeeper service (when running)
+  - job_name: 'gatekeeper'
+    static_configs:
+      - targets: ['host.docker.internal:3002']
+    metrics_path: /metrics
+
+  # Tool executor service (when running)
+  - job_name: 'tool-executor'
+    static_configs:
+      - targets: ['host.docker.internal:3003']
+    metrics_path: /metrics

@@ -1,0 +1,246 @@
+# BETA Phase Agent Configuration
+# Phase 12 of IdeaMine pipeline
+#
+# This phase manages the beta testing program with:
+# - Beta distribution across multiple channels
+# - Telemetry and analytics collection
+# - Reporting and insights generation
+#
+# Execution: PARALLEL (all 3 agents run simultaneously)
+# - Sequential time: ~40 seconds
+# - Parallel time: ~14 seconds
+# - Speedup: ~2.9x
+
+agents:
+  # ============================================================================
+  # BetaDistributorAgent
+  # ============================================================================
+  beta-distributor:
+    name: BetaDistributorAgent
+    description: |
+      Manages beta program distribution and tester engagement.
+
+      Responsibilities:
+      - Design multi-channel distribution strategy (TestFlight, Play Beta, web)
+      - Define tester segmentation and targeting
+      - Create onboarding materials and automation
+      - Plan phased rollout schedule (alpha → closed beta → open beta)
+      - Set up feedback collection mechanisms
+
+      Outputs:
+      - Distribution channel configurations
+      - Tester segment definitions
+      - Onboarding materials and automation
+      - Beta release schedule
+      - Feedback collection setup
+
+    llm:
+      provider: anthropic
+      model: claude-3-7-sonnet-20250219
+      temperature: 0.35
+
+    budget:
+      maxCostUsd: 2.0
+      maxTokens: 50000
+
+    timeout: 14000  # 14 seconds
+
+    capabilities:
+      - distribution-planning
+      - tester-management
+      - onboarding-automation
+      - feedback-collection
+
+    outputs:
+      - type: beta-distribution-plan
+        format: json
+        required: true
+
+  # ============================================================================
+  # TelemetryCollectorAgent
+  # ============================================================================
+  telemetry-collector:
+    name: TelemetryCollectorAgent
+    description: |
+      Designs telemetry and analytics collection strategy.
+
+      Responsibilities:
+      - Define comprehensive event taxonomy
+      - Design analytics platform integration (Mixpanel, Amplitude, etc.)
+      - Ensure privacy compliance (GDPR, CCPA)
+      - Set up error tracking and monitoring
+      - Configure performance metrics collection
+
+      Outputs:
+      - Event taxonomy and specifications
+      - Analytics platform configuration
+      - Privacy compliance setup
+      - Error tracking configuration
+      - Performance monitoring setup
+
+    llm:
+      provider: anthropic
+      model: claude-3-7-sonnet-20250219
+      temperature: 0.3
+
+    budget:
+      maxCostUsd: 2.0
+      maxTokens: 50000
+
+    timeout: 13000  # 13 seconds
+
+    capabilities:
+      - event-design
+      - analytics-integration
+      - privacy-compliance
+      - monitoring-setup
+
+    outputs:
+      - type: telemetry-collection-plan
+        format: json
+        required: true
+
+  # ============================================================================
+  # AnalyticsReporterAgent
+  # ============================================================================
+  analytics-reporter:
+    name: AnalyticsReporterAgent
+    description: |
+      Generates comprehensive analytics reports and insights.
+
+      Responsibilities:
+      - Design analytics dashboards for different audiences
+      - Define key metrics and success criteria
+      - Set up cohort analysis and funnel tracking
+      - Generate automated reports and insights
+      - Create beta health scorecard
+
+      Outputs:
+      - Dashboard configurations
+      - Key metric definitions
+      - Cohort analysis setup
+      - Automated reporting schedule
+      - Health scorecard framework
+
+    llm:
+      provider: anthropic
+      model: claude-3-7-sonnet-20250219
+      temperature: 0.4  # Slightly higher for user-friendly content
+
+    budget:
+      maxCostUsd: 2.0
+      maxTokens: 50000
+
+    timeout: 13000  # 13 seconds
+
+    capabilities:
+      - dashboard-design
+      - metrics-definition
+      - cohort-analysis
+      - automated-reporting
+      - insights-generation
+
+    outputs:
+      - type: analytics-report-plan
+        format: json
+        required: true
+
+# ============================================================================
+# Phase Configuration
+# ============================================================================
+phase:
+  name: BETA
+  description: Beta testing program management
+  order: 12
+
+  execution:
+    mode: parallel  # All agents run simultaneously
+    maxConcurrency: 3
+
+  budget:
+    total:
+      maxCostUsd: 6.0  # $2.0 per agent × 3 agents
+      maxTokens: 150000  # 50K per agent × 3 agents
+
+    alert:
+      costThreshold: 5.0
+      tokenThreshold: 120000
+
+  timeout: 15000  # 15 seconds (max agent time + buffer)
+
+  successCriteria:
+    minAgentsSuccessful: 3  # All agents must succeed
+    minBetaReadinessScore: 65  # Minimum acceptable score
+
+  outputs:
+    - beta-distribution-plan
+    - telemetry-collection-plan
+    - analytics-report-plan
+    - beta-complete  # Generated by coordinator
+
+  dependencies:
+    required:
+      - RELEASE  # Must have completed release phase
+
+    artifacts:
+      - deployment-plan
+      - packaging-report
+      - release-notes
+
+# ============================================================================
+# Quality Gates
+# ============================================================================
+qualityGates:
+  betaReadiness:
+    minimum: 65
+    target: 80
+    description: Overall beta program readiness score
+
+  distribution:
+    minChannels: 2
+    minTesters: 20
+    description: Minimum distribution requirements
+
+  telemetry:
+    minEvents: 20
+    minCompliance: 70
+    description: Telemetry infrastructure requirements
+
+  analytics:
+    minDashboards: 3
+    minMetrics: 8
+    description: Analytics reporting requirements
+
+# ============================================================================
+# Monitoring & Alerts
+# ============================================================================
+monitoring:
+  metrics:
+    - name: beta_readiness_score
+      type: gauge
+      range: [0, 100]
+
+    - name: distribution_score
+      type: gauge
+      range: [0, 100]
+
+    - name: telemetry_score
+      type: gauge
+      range: [0, 100]
+
+    - name: analytics_score
+      type: gauge
+      range: [0, 100]
+
+  alerts:
+    - condition: beta_readiness_score < 65
+      severity: critical
+      message: "Beta readiness below minimum threshold"
+
+    - condition: privacy_compliance_score < 70
+      severity: critical
+      message: "Privacy compliance insufficient for beta launch"
+
+    - condition: total_channels < 2
+      severity: warning
+      message: "Insufficient distribution channels configured"

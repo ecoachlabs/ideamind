@@ -1,0 +1,391 @@
+{
+  "knowledge_refinery": {
+    "fission_response": {
+      "status": "success",
+      "frames": [
+        {
+          "id": "frame_001",
+          "type": "requirement",
+          "key": "User authentication required",
+          "value": "The system must support user authentication via email/password and OAuth providers (Google, GitHub)",
+          "confidence": 0.95,
+          "evidence": ["Mentioned in functional requirements", "Standard for SaaS applications"],
+          "tags": ["security", "authentication", "user_management"]
+        },
+        {
+          "id": "frame_002",
+          "type": "constraint",
+          "key": "GDPR compliance",
+          "value": "System must be GDPR compliant for EU users, including right to deletion and data portability",
+          "confidence": 0.98,
+          "evidence": ["EU target market identified", "Personal data collection mentioned"],
+          "tags": ["compliance", "privacy", "legal"]
+        },
+        {
+          "id": "frame_003",
+          "type": "decision",
+          "key": "Database selection",
+          "value": "PostgreSQL recommended for relational data with JSONB support for flexible schemas",
+          "confidence": 0.85,
+          "evidence": ["Supports ACID transactions", "Excellent for multi-tenancy", "Strong ecosystem"],
+          "tags": ["database", "architecture", "technology"]
+        }
+      ],
+      "coverage_score": 0.92
+    },
+
+    "fusion_response": {
+      "status": "success",
+      "merged_frame": {
+        "id": "frame_merged_001",
+        "key": "Payment processing requirements",
+        "value": "System must support Stripe for payment processing with PCI DSS compliance, multi-currency, and subscription management",
+        "confidence": 0.94,
+        "consensus_score": 0.89,
+        "source_frames": ["frame_100", "frame_101", "frame_102"],
+        "conflicts_resolved": [
+          {
+            "conflict": "Payment provider choice",
+            "resolution": "Stripe selected based on feature completeness and compliance",
+            "alternatives_considered": ["PayPal", "Square"]
+          }
+        ]
+      }
+    },
+
+    "search_response": {
+      "status": "success",
+      "results": [
+        {
+          "id": "frame_050",
+          "key": "API rate limiting",
+          "value": "Implement rate limiting of 100 requests per 15 minutes per user to prevent abuse",
+          "relevance_score": 0.91,
+          "category": "constraint"
+        },
+        {
+          "id": "frame_051",
+          "key": "API authentication",
+          "value": "Use JWT tokens for API authentication with 1-hour expiration and refresh tokens",
+          "relevance_score": 0.87,
+          "category": "decision"
+        }
+      ]
+    }
+  },
+
+  "qav_triad": {
+    "question_generation_response": {
+      "questions": [
+        {
+          "id": "q_001",
+          "question": "What is the expected peak concurrent user load for the application?",
+          "claim": "System must scale to handle high traffic",
+          "rationale": "Need specific numbers to design infrastructure and estimate costs",
+          "priority": "high",
+          "category": "technical"
+        },
+        {
+          "id": "q_002",
+          "question": "Are there specific compliance requirements beyond GDPR (e.g., SOC 2, HIPAA)?",
+          "claim": "System must be compliant with regulations",
+          "rationale": "Additional compliance affects architecture and implementation cost",
+          "priority": "medium",
+          "category": "legal"
+        },
+        {
+          "id": "q_003",
+          "question": "What is the target latency for API responses?",
+          "claim": "API must be performant",
+          "rationale": "Performance requirements drive caching strategy and infrastructure choices",
+          "priority": "high",
+          "category": "technical"
+        }
+      ],
+      "total_claims": 15,
+      "unsupported_claims": 5
+    },
+
+    "answer_response": {
+      "answers": [
+        {
+          "question_id": "q_001",
+          "answer": "Based on similar SaaS applications in this category, expect 5,000-10,000 concurrent users at peak. Design for 15,000 to allow headroom.",
+          "source": "knowledge_refinery",
+          "confidence": 0.75,
+          "supporting_evidence": [
+            "Industry benchmarks for mid-sized SaaS",
+            "Growth projections from market analysis"
+          ]
+        },
+        {
+          "question_id": "q_002",
+          "answer": "SOC 2 Type II certification recommended for enterprise customers. HIPAA not required based on use case.",
+          "source": "inferred",
+          "confidence": 0.82,
+          "supporting_evidence": [
+            "Enterprise tier mentioned in pricing",
+            "No health data handling identified"
+          ]
+        },
+        {
+          "question_id": "q_003",
+          "answer": "Target P95 latency of 200ms for API responses, P99 of 500ms. Critical paths should be under 100ms.",
+          "source": "knowledge_refinery",
+          "confidence": 0.88,
+          "supporting_evidence": [
+            "Industry standards for web APIs",
+            "User experience research"
+          ]
+        }
+      ]
+    },
+
+    "validation_response": {
+      "validations": [
+        {
+          "question_id": "q_001",
+          "status": "ACCEPT",
+          "confidence": 0.85,
+          "rationale": "Answer provides specific numbers with industry context and headroom for growth",
+          "bindings": {
+            "peak_concurrent_users": 10000,
+            "design_capacity": 15000
+          }
+        },
+        {
+          "question_id": "q_002",
+          "status": "ACCEPT",
+          "confidence": 0.90,
+          "rationale": "SOC 2 recommendation aligns with enterprise tier, HIPAA exclusion is correct",
+          "bindings": {
+            "compliance_required": ["GDPR", "SOC2_TYPE2"],
+            "compliance_not_required": ["HIPAA"]
+          }
+        },
+        {
+          "question_id": "q_003",
+          "status": "ACCEPT",
+          "confidence": 0.92,
+          "rationale": "Latency targets are realistic and industry-standard for SaaS applications",
+          "bindings": {
+            "api_latency_p95_ms": 200,
+            "api_latency_p99_ms": 500,
+            "critical_path_max_ms": 100
+          }
+        }
+      ],
+      "grounding_score": 0.89,
+      "accepted_count": 3,
+      "rejected_count": 0,
+      "unknown_count": 0
+    }
+  },
+
+  "agents": {
+    "intake_agent_response": {
+      "status": "success",
+      "result": {
+        "idea_spec": {
+          "name": "Project Management SaaS",
+          "category": "productivity",
+          "target_market": "remote_teams",
+          "complexity": "complex",
+          "viability_score": 0.87,
+          "feasibility": "high",
+          "blockers": []
+        },
+        "artifacts": [
+          {
+            "id": "artifact_intake_001",
+            "type": "IdeaSpec",
+            "path": "/artifacts/run_12345/intake/idea_spec.json"
+          }
+        ]
+      },
+      "cost": {
+        "tokens_used": 2500,
+        "cost_usd": 0.05,
+        "tools_minutes": 0
+      },
+      "duration_ms": 3500
+    },
+
+    "architecture_agent_response": {
+      "status": "success",
+      "result": {
+        "architecture": {
+          "style": "microservices",
+          "components": [
+            {
+              "name": "API Gateway",
+              "type": "service",
+              "technology": "Node.js + Express",
+              "responsibilities": ["Request routing", "Authentication", "Rate limiting"]
+            },
+            {
+              "name": "User Service",
+              "type": "microservice",
+              "technology": "Node.js",
+              "database": "PostgreSQL",
+              "responsibilities": ["User management", "Authentication", "Profile data"]
+            },
+            {
+              "name": "Project Service",
+              "type": "microservice",
+              "technology": "Node.js",
+              "database": "PostgreSQL",
+              "responsibilities": ["Project CRUD", "Task management", "Permissions"]
+            }
+          ],
+          "infrastructure": {
+            "hosting": "AWS",
+            "container_orchestration": "Kubernetes (EKS)",
+            "caching": "Redis",
+            "cdn": "CloudFront",
+            "monitoring": "Datadog"
+          },
+          "scalability_patterns": [
+            "Horizontal pod autoscaling",
+            "Database read replicas",
+            "CDN for static assets",
+            "Event-driven architecture for async tasks"
+          ]
+        },
+        "diagrams": [
+          {
+            "type": "system_architecture",
+            "format": "mermaid",
+            "content": "graph TD\n  Client[Client Apps] --> Gateway[API Gateway]\n  Gateway --> UserSvc[User Service]\n  Gateway --> ProjSvc[Project Service]"
+          }
+        ]
+      },
+      "cost": {
+        "tokens_used": 8500,
+        "cost_usd": 0.17,
+        "tools_minutes": 0
+      },
+      "duration_ms": 12000
+    },
+
+    "security_agent_response": {
+      "status": "success",
+      "result": {
+        "security_pack": {
+          "vulnerabilities": {
+            "critical": 0,
+            "high": 2,
+            "medium": 5,
+            "low": 8
+          },
+          "findings": [
+            {
+              "severity": "high",
+              "type": "dependency",
+              "description": "Outdated lodash version with prototype pollution vulnerability",
+              "recommendation": "Upgrade lodash to 4.17.21 or later",
+              "cve": "CVE-2020-8203"
+            },
+            {
+              "severity": "high",
+              "type": "sast",
+              "description": "SQL injection risk in user query endpoint",
+              "location": "src/routes/users.ts:45",
+              "recommendation": "Use parameterized queries or ORM",
+              "cwe": "CWE-89"
+            }
+          ],
+          "compliance": {
+            "owasp_top_10": "passed_with_warnings",
+            "secrets_detected": 0,
+            "license_issues": 0
+          }
+        }
+      },
+      "cost": {
+        "tokens_used": 15000,
+        "cost_usd": 0.30,
+        "tools_minutes": 10
+      },
+      "duration_ms": 120000
+    }
+  },
+
+  "gates": {
+    "passed_gate": {
+      "status": "passed",
+      "score": 0.92,
+      "rubrics": {
+        "completeness": {"score": 0.95, "passed": true},
+        "feasibility": {"score": 0.90, "passed": true},
+        "quality": {"score": 0.91, "passed": true}
+      },
+      "issues": [],
+      "recommendations": [
+        "Consider adding more detail to error handling specifications"
+      ]
+    },
+
+    "failed_gate": {
+      "status": "failed",
+      "score": 0.68,
+      "rubrics": {
+        "completeness": {"score": 0.65, "passed": false},
+        "critical_cves": {"score": 0.0, "passed": false},
+        "test_coverage": {"score": 0.72, "passed": true}
+      },
+      "issues": [
+        {
+          "severity": "critical",
+          "type": "completeness",
+          "description": "Missing API documentation for 5 endpoints"
+        },
+        {
+          "severity": "critical",
+          "type": "security",
+          "description": "2 critical CVEs detected in dependencies",
+          "details": ["CVE-2023-12345", "CVE-2023-67890"]
+        }
+      ],
+      "fix_strategies": [
+        "Generate OpenAPI documentation for missing endpoints",
+        "Upgrade vulnerable dependencies to latest secure versions"
+      ]
+    }
+  },
+
+  "events": {
+    "phase_started": {
+      "type": "phase.started",
+      "run_id": "run_abc123",
+      "phase_id": "architecture",
+      "timestamp": "2025-10-20T10:00:00Z",
+      "payload": {
+        "parallelism": "sequential",
+        "agent_count": 3,
+        "budgets": {
+          "tokens": 50000,
+          "tools_minutes": 30
+        }
+      }
+    },
+
+    "phase_completed": {
+      "type": "phase.completed",
+      "run_id": "run_abc123",
+      "phase_id": "architecture",
+      "timestamp": "2025-10-20T10:15:30Z",
+      "payload": {
+        "status": "success",
+        "duration_ms": 930000,
+        "gate_passed": true,
+        "artifacts_created": 4,
+        "cost": {
+          "tokens_used": 28500,
+          "cost_usd": 0.57,
+          "tools_minutes": 0
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@ideamine/schemas",
+  "version": "1.0.0",
+  "description": "JSON schemas and TypeScript types for IdeaMine orchestrator",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "keywords": [
+    "ideamine",
+    "schemas",
+    "json-schema"
+  ],
+  "author": "IdeaMine Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}

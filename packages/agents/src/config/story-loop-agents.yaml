@@ -1,0 +1,96 @@
+# STORY_LOOP Phase Agent Configurations
+# Version: 1.0.0
+#
+# These 3 agents run SEQUENTIALLY for each user story
+# Pattern: Story Coder → Code Reviewer → Unit Test Writer
+
+agents:
+  - id: "story-loop-story-coder-agent"
+    name: "Story Coder Agent"
+    description: "Implements user stories with production-quality code following architecture"
+    phase: "STORY_LOOP"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Precise for code generation
+      maxTokens: 15000  # Higher token limit for generating 3-8 code files
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0  # No tools needed
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 15000
+      maxCostUsd: 0.50
+
+    timeout: 15000  # 15 seconds - longer for code generation
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "story-loop-code-reviewer-agent"
+    name: "Code Reviewer Agent"
+    description: "Performs comprehensive code review analyzing security, performance, and quality"
+    phase: "STORY_LOOP"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Analytical precision for review
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 10000  # 10 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "story-loop-unit-test-writer-agent"
+    name: "Unit Test Writer Agent"
+    description: "Generates comprehensive unit tests with 80%+ code coverage"
+    phase: "STORY_LOOP"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Precise for test code generation
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 12000  # 12 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"

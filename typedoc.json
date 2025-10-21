@@ -1,0 +1,42 @@
+{
+  "entryPoints": [
+    "packages/orchestrator-core/src/index.ts",
+    "packages/schemas/src/index.ts"
+  ],
+  "out": "docs/api",
+  "name": "IdeaMine Orchestrator API",
+  "readme": "README.md",
+  "excludePrivate": false,
+  "excludeProtected": false,
+  "excludeInternal": false,
+  "includeVersion": true,
+  "categorizeByGroup": true,
+  "categoryOrder": [
+    "Core",
+    "Phase Execution",
+    "Autonomy",
+    "Budget Tracking",
+    "Monitoring",
+    "Resilience",
+    "Production Hardening",
+    "*"
+  ],
+  "sort": ["source-order"],
+  "plugin": ["typedoc-plugin-markdown"],
+  "theme": "default",
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": true
+  },
+  "searchInComments": true,
+  "searchInDocuments": true,
+  "gitRevision": "main",
+  "gitRemote": "origin",
+  "exclude": [
+    "**/node_modules/**",
+    "**/__tests__/**",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ],
+  "media": "docs/images"
+}

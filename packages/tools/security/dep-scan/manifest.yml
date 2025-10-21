@@ -1,0 +1,118 @@
+id: tool.code.depScan
+version: 1.0.0
+name: Dependency Scanner
+description: Scan dependencies for known CVEs and license issues using Trivy and OSV Scanner
+category: security
+
+inputs:
+  manifest:
+    type: string
+    description: Path to dependency manifest (package-lock.json, requirements.txt, go.mod, etc.)
+    required: false
+
+  image:
+    type: string
+    description: Container image to scan for dependencies
+    required: false
+
+  scanTransitive:
+    type: boolean
+    description: Scan transitive dependencies
+    default: true
+
+  databases:
+    type: array
+    description: Vulnerability databases to query
+    items:
+      type: string
+      enum: [osv, nvd, github]
+    default: [osv, nvd, github]
+
+  checkLicenses:
+    type: boolean
+    description: Check for license compatibility issues
+    default: true
+
+  scanLayers:
+    type: boolean
+    description: For container images - scan all layers
+    default: true
+
+output:
+  type: object
+  properties:
+    vulnerabilities:
+      type: array
+      description: List of detected vulnerabilities
+      items:
+        type: object
+        properties:
+          cveId:
+            type: string
+            description: CVE identifier
+          package:
+            type: string
+            description: Package name
+          version:
+            type: string
+            description: Installed version
+          severity:
+            type: string
+            enum: [critical, high, medium, low]
+          cvssScore:
+            type: number
+            description: CVSS score (0-10)
+          description:
+            type: string
+            description: Vulnerability description
+          fixedIn:
+            type: string
+            description: Version that fixes the vulnerability
+          exploitAvailable:
+            type: boolean
+            description: Whether exploit is publicly available
+          path:
+            type: array
+            description: Dependency path (for transitive deps)
+            items:
+              type: string
+    licenses:
+      type: array
+      description: List of license issues
+      items:
+        type: object
+        properties:
+          package:
+            type: string
+            description: Package name
+          version:
+            type: string
+            description: Package version
+          license:
+            type: string
+            description: License identifier
+    toolVersion:
+      type: string
+      description: Scanner version
+
+timeout_seconds: 600  # 10 minutes max
+
+resources:
+  memory: 4Gi
+  cpu: 2000m
+
+security:
+  sandbox: true
+  network: required  # Need to query vulnerability databases
+  filesystem: read-only
+
+metadata:
+  author: IdeaMine Security Team
+  license: MIT
+  tags:
+    - security
+    - dependencies
+    - cve
+    - trivy
+    - osv
+  documentation: https://docs.ideamine.io/tools/dep-scan

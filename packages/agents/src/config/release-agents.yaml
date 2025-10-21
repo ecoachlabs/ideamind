@@ -1,0 +1,115 @@
+# RELEASE Phase Agent Configurations
+#
+# This phase prepares production-ready deployment packages with 3 agents
+# running in PARALLEL for 3x speedup over sequential execution.
+#
+# Parallel execution time: ~15 seconds (longest agent)
+# Sequential would take: ~42 seconds (14s + 15s + 13s)
+# Speedup: ~2.8x
+#
+# Phase budget: $2.0 USD, 50,000 tokens
+
+agents:
+  # Packager Agent
+  # Generates deployment packages (Docker images, NPM packages, static builds)
+  - id: "release-packager-agent"
+    name: "Packager Agent"
+    phase: "RELEASE"
+    description: "Generates optimized deployment packages including Docker images, NPM packages, static builds, and mobile apps with comprehensive build optimization"
+    llm:
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3 # Lower for precise build specifications
+      maxTokens: 14000
+    timeout: 14000 # 14 seconds
+    retry:
+      maxRetries: 2
+      backoffMs: 1000
+    capabilities:
+      - "docker-image-building"
+      - "npm-package-generation"
+      - "static-site-optimization"
+      - "mobile-app-packaging"
+      - "build-optimization"
+      - "package-validation"
+      - "security-scanning"
+      - "bundle-size-analysis"
+    outputs:
+      - type: "packaging-report"
+        description: "Comprehensive packaging report with deployment artifacts and optimization strategies"
+
+  # Deployer Agent
+  # Designs deployment strategy and infrastructure configuration
+  - id: "release-deployer-agent"
+    name: "Deployer Agent"
+    phase: "RELEASE"
+    description: "Designs comprehensive deployment strategy including infrastructure provisioning, CI/CD pipeline, monitoring, and rollback procedures"
+    llm:
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3 # Lower for precise infrastructure specs
+      maxTokens: 15000
+    timeout: 15000 # 15 seconds
+    retry:
+      maxRetries: 2
+      backoffMs: 1000
+    capabilities:
+      - "cloud-infrastructure-design"
+      - "deployment-strategy-planning"
+      - "ci-cd-pipeline-configuration"
+      - "kubernetes-orchestration"
+      - "blue-green-deployment"
+      - "canary-deployment"
+      - "infrastructure-as-code"
+      - "cost-estimation"
+      - "monitoring-setup"
+      - "rollback-planning"
+    outputs:
+      - type: "deployment-plan"
+        description: "Complete deployment strategy with infrastructure specs, CI/CD configuration, and cost estimates"
+
+  # Release Notes Writer Agent
+  # Generates release documentation and changelogs
+  - id: "release-release-notes-writer-agent"
+    name: "Release Notes Writer Agent"
+    phase: "RELEASE"
+    description: "Generates comprehensive release notes including changelogs, breaking changes, migration guides, and user-facing documentation"
+    llm:
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.4 # Slightly higher for engaging, user-friendly content
+      maxTokens: 13000
+    timeout: 13000 # 13 seconds
+    retry:
+      maxRetries: 2
+      backoffMs: 1000
+    capabilities:
+      - "release-notes-generation"
+      - "changelog-writing"
+      - "breaking-change-documentation"
+      - "migration-guide-creation"
+      - "api-change-documentation"
+      - "security-advisory-writing"
+      - "user-documentation"
+      - "technical-writing"
+    outputs:
+      - type: "release-notes"
+        description: "Comprehensive release notes with changelogs, migration guides, and documentation links"
+
+# Phase metadata
+metadata:
+  phase: "RELEASE"
+  version: "1.0.0"
+  totalAgents: 3
+  executionMode: "parallel"
+  estimatedDuration: 15000 # milliseconds (~15 seconds for parallel)
+  budget:
+    maxCostUsd: 2.0
+    maxTokens: 50000
+  dependencies:
+    required:
+      - "qa-complete" # From QA phase
+      - "story-loop-complete" # From STORY_LOOP phase
+      - "repository-blueprint" # From BUILD phase
+      - "system-architecture" # From ARCH phase
+    optional:
+      - "infrastructure-plan" # For deployment context
+      - "code-review" # For release notes context
+      - "aesthetic-complete" # For UI/UX quality context

@@ -1,0 +1,95 @@
+# BUILD Phase Agent Configurations
+# Version: 1.0.0
+#
+# These 3 agents run in PARALLEL for 3x performance improvement
+
+agents:
+  - id: "build-repo-creator-agent"
+    name: "Repository Creator Agent"
+    description: "Creates repository structure, scaffolding, and initial project setup"
+    phase: "BUILD"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Precise for code generation
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0  # No tools needed
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 10000  # 10 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "build-cicd-builder-agent"
+    name: "CI/CD Builder Agent"
+    description: "Generates CI/CD pipeline configurations with quality gates"
+    phase: "BUILD"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Precise pipeline configuration
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 10000  # 10 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "build-env-provisioner-agent"
+    name: "Environment Provisioner Agent"
+    description: "Creates Infrastructure as Code templates and environment configurations"
+    phase: "BUILD"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Precise IaC generation
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 10000  # 10 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"

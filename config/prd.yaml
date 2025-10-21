@@ -1,0 +1,75 @@
+# PRD Phase Configuration
+# Product Requirements Document generation
+
+phase: prd
+description: Generate comprehensive Product Requirements Document
+
+parallelism: sequential
+
+aggregation_strategy: merge
+
+agents:
+  - StoryCutterAgent
+  - PRDWriterAgent
+  - UXFlowAgent
+  - NFRsAgent
+  - TraceMatrixAgent
+
+budgets:
+  tokens: 200000
+  tools_minutes: 15
+  wallclock_minutes: 45
+
+guards:
+  - type: completeness
+    config:
+      required_sections:
+        - user_stories
+        - ux_flows
+        - nfrs
+        - traceability_matrix
+
+  - type: contradictions
+    config:
+      max_contradictions: 0
+
+  - type: coverage
+    config:
+      min_stories: 5
+      min_nfrs: 3
+
+gate:
+  pass_threshold: 0.80
+  auto_fix_enabled: true
+  max_attempts: 5
+  rubrics:
+    completeness: 0.25
+    consistency: 0.25
+    grounding: 0.30
+    coverage: 0.20
+
+qav:
+  enabled: true
+  max_questions: 15
+  min_grounding_score: 0.85
+  max_iterations: 5
+
+artifacts:
+  - type: PRD
+    required: true
+  - type: RTM
+    required: true
+  - type: UserStories
+    required: true
+
+dependencies:
+  - critique
+
+checkpoints:
+  enabled: true
+  interval_minutes: 3
+
+retries:
+  max_attempts: 5
+  strategy: exponential
+  base_delay_ms: 2000

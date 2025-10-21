@@ -1,0 +1,123 @@
+id: tool.code.staticPack
+version: 1.0.0
+name: Static Security Scanner (SAST)
+description: Run static application security testing using Semgrep, Bandit, and CodeQL
+category: security
+
+inputs:
+  codebase:
+    type: string
+    description: Git repository ref or path to codebase
+    required: true
+
+  tool:
+    type: string
+    description: Which SAST tool to use
+    enum: [semgrep, bandit, codeql, all]
+    default: semgrep
+
+  languages:
+    type: array
+    description: Languages to scan (auto-detect if not provided)
+    items:
+      type: string
+      enum: [typescript, javascript, python, go, java, ruby, php, csharp]
+    required: false
+
+  rulesets:
+    type: array
+    description: Security rulesets to apply
+    items:
+      type: string
+      enum: [owasp-top-10, cwe-top-25, pci-dss, auto]
+    default: [owasp-top-10, cwe-top-25]
+
+  paths:
+    type: array
+    description: Specific paths to scan
+    items:
+      type: string
+    required: false
+
+  exclude:
+    type: array
+    description: Paths to exclude (test files, vendor, etc.)
+    items:
+      type: string
+    default: [tests/, test/, vendor/, node_modules/, .git/]
+
+  config:
+    type: string
+    description: Path to custom tool configuration file
+    required: false
+
+output:
+  type: object
+  properties:
+    findings:
+      type: array
+      description: List of security findings
+      items:
+        type: object
+        properties:
+          check_id:
+            type: string
+            description: Rule/check identifier
+          ruleId:
+            type: string
+            description: Alias for check_id
+          severity:
+            type: string
+            enum: [error, warning, info]
+          message:
+            type: string
+            description: Finding description
+          path:
+            type: string
+            description: File path
+          line:
+            type: number
+            description: Line number
+          column:
+            type: number
+            description: Column number
+          code:
+            type: string
+            description: Code snippet
+          extra:
+            type: object
+            description: Additional metadata (CWE, OWASP, dataflow, etc.)
+    filesScanned:
+      type: number
+      description: Number of files scanned
+    linesScanned:
+      type: number
+      description: Total lines of code scanned
+    rulesApplied:
+      type: number
+      description: Number of security rules applied
+    toolVersion:
+      type: string
+      description: Scanner version
+
+timeout_seconds: 900  # 15 minutes max (CodeQL can be slow)
+
+resources:
+  memory: 8Gi  # CodeQL needs more memory
+  cpu: 4000m
+
+security:
+  sandbox: true
+  network: required  # Need to download rulesets
+  filesystem: read-only
+
+metadata:
+  author: IdeaMine Security Team
+  license: MIT
+  tags:
+    - security
+    - sast
+    - semgrep
+    - bandit
+    - codeql
+  documentation: https://docs.ideamine.io/tools/static-scan

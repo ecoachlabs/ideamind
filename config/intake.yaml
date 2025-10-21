@@ -1,0 +1,84 @@
+# Intake Phase Configuration
+# Captures initial idea and expands into IdeaSpec
+
+phase: intake
+description: Initial idea intake and validation
+
+# Parallelism strategy for agent execution
+# Options: sequential, parallel, partial, iterative, <number>
+parallelism: sequential
+
+# Aggregation strategy for combining agent outputs
+# Options: merge, concat, vote, custom
+aggregation_strategy: merge
+
+# Agents to run in this phase
+agents:
+  - IntakeAgent
+  - ConstraintsAgent
+  - RequirementsAgent
+
+# Budget allocations for this phase
+budgets:
+  tokens: 50000           # Total tokens for all agents
+  tools_minutes: 5        # Total tool usage time (minutes)
+  wallclock_minutes: 15   # Max wall-clock time
+
+# Guards to run before gate evaluation
+guards:
+  - type: completeness
+    description: Ensure all required fields are present
+    config:
+      required_fields:
+        - title
+        - description
+        - target_users
+        - constraints
+
+  - type: clarity
+    description: Ensure idea is clear and unambiguous
+    config:
+      min_clarity_score: 0.7
+
+# Gate evaluation configuration
+gate:
+  pass_threshold: 0.75
+  auto_fix_enabled: true
+  max_attempts: 3
+
+  # Rubrics for gate evaluation
+  rubrics:
+    completeness: 0.3      # 30% weight
+    clarity: 0.4           # 40% weight
+    grounding: 0.3         # 30% weight
+
+# Q/A/V configuration
+qav:
+  enabled: true
+  max_questions: 5
+  min_grounding_score: 0.75
+  max_iterations: 3
+
+# Artifact types produced
+artifacts:
+  - type: IdeaSpec
+    schema: ideaspec.schema.json
+    required: true
+
+  - type: ConstraintsList
+    schema: constraints.schema.json
+    required: false
+
+# Dependencies (phases that must complete before this)
+dependencies: []
+
+# Checkpoint configuration
+checkpoints:
+  enabled: true
+  interval_minutes: 2
+
+# Retry configuration
+retries:
+  max_attempts: 3
+  strategy: exponential
+  base_delay_ms: 1000

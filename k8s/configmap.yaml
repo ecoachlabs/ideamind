@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ideamine-config
+  namespace: ideamine
+data:
+  # Node Environment
+  NODE_ENV: "production"
+
+  # Logging
+  LOG_LEVEL: "info"
+
+  # Rate Limiting
+  RATE_LIMIT_WINDOW_MS: "900000"  # 15 minutes
+  RATE_LIMIT_MAX_REQUESTS: "1000"
+
+  # CORS
+  CORS_ORIGINS: "https://app.ideamine.io,https://dashboard.ideamine.io"
+
+  # API Configuration
+  PORT: "9002"
+
+  # Worker Configuration
+  WORKER_CONCURRENCY: "10"
+  HEARTBEAT_INTERVAL_MS: "60000"  # 1 minute
+  STALL_THRESHOLD_HEARTBEATS: "3"
+
+  # Phase Configuration
+  MAX_RETRIES: "3"
+  RETRY_DELAY_MS: "5000"
+  CHECKPOINT_INTERVAL_MS: "300000"  # 5 minutes
+
+  # Budget Defaults
+  DEFAULT_TOKEN_BUDGET: "100000"
+  DEFAULT_TOOLS_MINUTES: "60"
+  DEFAULT_WALLCLOCK_MINUTES: "120"

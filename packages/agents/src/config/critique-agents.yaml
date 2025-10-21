@@ -1,0 +1,95 @@
+# Critique Phase Agent Configurations
+# Version: 1.0.0
+#
+# These 3 agents run in PARALLEL for 3x performance improvement
+
+agents:
+  - id: "critique-redteam-agent"
+    name: "Red Team Agent"
+    description: "Takes adversarial perspective to find weaknesses, flaws, and risks"
+    phase: "CRITIQUE"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.4  # Critical but creative thinking
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0  # No tools needed
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 15000  # 15 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "critique-risk-agent"
+    name: "Risk Analyzer Agent"
+    description: "Systematically identifies and scores risks across all dimensions"
+    phase: "CRITIQUE"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Analytical, precise
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 15000  # 15 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "critique-assumption-agent"
+    name: "Assumption Challenger Agent"
+    description: "Questions all implicit and explicit assumptions with validation methods"
+    phase: "CRITIQUE"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.4  # Questioning but systematic
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 15000  # 15 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"

@@ -1,0 +1,148 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Citation Check Output",
+  "description": "Verification results with grounding analysis",
+  "properties": {
+    "valid": {
+      "type": "boolean",
+      "description": "Overall validation result"
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Overall confidence score (0-1)",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "citations": {
+      "type": "array",
+      "description": "Detected citations",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Cited text"
+          },
+          "source_id": {
+            "type": "string",
+            "description": "Referenced source ID"
+          },
+          "valid": {
+            "type": "boolean",
+            "description": "Whether citation is valid"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "start": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "end": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": ["start", "end"]
+          }
+        },
+        "required": ["text", "source_id", "valid", "confidence"]
+      }
+    },
+    "claims": {
+      "type": "array",
+      "description": "Extracted claims with verification",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Claim text"
+          },
+          "grounded": {
+            "type": "boolean",
+            "description": "Whether claim is grounded in sources"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "source_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Supporting source IDs"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Explanation for verification result"
+          }
+        },
+        "required": ["text", "grounded", "confidence"]
+      }
+    },
+    "issues": {
+      "type": "array",
+      "description": "Detected issues",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["missing_citation", "invalid_source", "unsupported_claim", "hallucination"]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "warning", "info"]
+          },
+          "message": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string",
+            "description": "Text location or claim"
+          }
+        },
+        "required": ["type", "severity", "message"]
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Verification metrics",
+      "properties": {
+        "total_claims": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "grounded_claims": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_citations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "valid_citations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "grounding_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Percentage of grounded claims"
+        }
+      },
+      "required": ["total_claims", "grounded_claims", "total_citations", "valid_citations", "grounding_rate"]
+    }
+  },
+  "required": ["valid", "confidence", "citations", "claims", "issues", "metrics"]
+}

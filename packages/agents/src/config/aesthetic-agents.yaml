@@ -1,0 +1,112 @@
+# AESTHETIC Phase Agent Configurations
+#
+# This phase evaluates UI/UX quality, accessibility, and polish with 3 agents
+# running in PARALLEL for 3-4x speedup over sequential execution.
+#
+# Parallel execution time: ~14 seconds (longest agent)
+# Sequential would take: ~40 seconds (14s + 13s + 13s)
+# Speedup: ~2.9x
+#
+# Phase budget: $1.5 USD, 40,000 tokens
+
+agents:
+  # UI Auditor Agent
+  # Evaluates design consistency, spacing, typography, color, responsive design
+  - id: "aesthetic-ui-auditor-agent"
+    name: "UI Auditor Agent"
+    phase: "AESTHETIC"
+    description: "Performs comprehensive UI/UX design audit including design system compliance, brand consistency, and visual quality assessment"
+    llm:
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.4 # Slightly higher for design evaluation creativity
+      maxTokens: 14000
+    timeout: 14000 # 14 seconds
+    retry:
+      maxRetries: 2
+      backoffMs: 1000
+    capabilities:
+      - "design-consistency-analysis"
+      - "design-system-compliance"
+      - "brand-consistency-validation"
+      - "typography-evaluation"
+      - "color-palette-analysis"
+      - "spacing-system-audit"
+      - "responsive-design-evaluation"
+      - "visual-hierarchy-assessment"
+    outputs:
+      - type: "ui-audit-report"
+        description: "Comprehensive UI design audit with quality scores and recommendations"
+
+  # Accessibility Checker Agent
+  # WCAG 2.1 compliance checking (Level A, AA, AAA)
+  - id: "aesthetic-accessibility-checker-agent"
+    name: "Accessibility Checker Agent"
+    phase: "AESTHETIC"
+    description: "Performs comprehensive WCAG 2.1 accessibility audit including color contrast, keyboard navigation, screen reader support, and semantic HTML"
+    llm:
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3 # Lower for precise compliance checking
+      maxTokens: 13000
+    timeout: 13000 # 13 seconds
+    retry:
+      maxRetries: 2
+      backoffMs: 1000
+    capabilities:
+      - "wcag-2.1-compliance-checking"
+      - "color-contrast-analysis"
+      - "keyboard-navigation-validation"
+      - "screen-reader-compatibility"
+      - "semantic-html-evaluation"
+      - "focus-management-audit"
+      - "form-accessibility-check"
+      - "aria-validation"
+    outputs:
+      - type: "accessibility-report"
+        description: "Detailed accessibility audit with WCAG violations and remediation guidance"
+
+  # Polish Agent
+  # Evaluates UI polish, animations, transitions, micro-interactions
+  - id: "aesthetic-polish-agent"
+    name: "Polish Agent"
+    phase: "AESTHETIC"
+    description: "Evaluates UI polish including animations, transitions, loading states, empty states, error states, and micro-interactions"
+    llm:
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.4 # Slightly higher for creative polish suggestions
+      maxTokens: 13000
+    timeout: 13000 # 13 seconds
+    retry:
+      maxRetries: 2
+      backoffMs: 1000
+    capabilities:
+      - "animation-quality-analysis"
+      - "transition-smoothness-evaluation"
+      - "loading-state-assessment"
+      - "empty-state-evaluation"
+      - "error-state-analysis"
+      - "micro-interaction-audit"
+      - "delight-factor-assessment"
+      - "animation-performance-optimization"
+      - "cross-browser-compatibility-check"
+    outputs:
+      - type: "polish-report"
+        description: "Comprehensive UI polish report with refinement recommendations"
+
+# Phase metadata
+metadata:
+  phase: "AESTHETIC"
+  version: "1.0.0"
+  totalAgents: 3
+  executionMode: "parallel"
+  estimatedDuration: 14000 # milliseconds (~14 seconds for parallel)
+  budget:
+    maxCostUsd: 1.5
+    maxTokens: 40000
+  dependencies:
+    required:
+      - "visual-regression-suite" # From QA phase
+      - "story-loop-complete" # From STORY_LOOP phase
+      - "repository-blueprint" # From BUILD phase
+    optional:
+      - "prd-complete" # For understanding user journeys
+      - "api-design" # For form/validation context

@@ -1,0 +1,63 @@
+# Story Loop Phase Configuration
+# Iterative user story implementation and testing
+
+phase: story-loop
+description: Iteratively implement and test user stories
+
+parallelism: iterative  # Special iterative mode
+
+aggregation_strategy: concat
+
+agents:
+  - StoryImplementerAgent
+  - StoryTesterAgent
+  - StoryValidatorAgent
+
+budgets:
+  tokens: 400000
+  tools_minutes: 50
+  wallclock_minutes: 150
+
+guards:
+  - type: story_completion
+    config:
+      min_stories_completed: 5
+
+  - type: acceptance_tests
+    config:
+      min_acceptance_pass_rate: 0.90
+
+gate:
+  pass_threshold: 0.85
+  auto_fix_enabled: true
+  max_attempts: 5
+  rubrics:
+    story_completion: 0.35
+    acceptance_tests: 0.35
+    grounding: 0.30
+
+qav:
+  enabled: true
+  max_questions: 20
+  min_grounding_score: 0.85
+  max_iterations: 10  # More iterations for iterative phase
+
+artifacts:
+  - type: ImplementedStories
+    required: true
+  - type: AcceptanceTestResults
+    required: true
+  - type: StoryProgress
+    required: true
+
+dependencies:
+  - build
+
+checkpoints:
+  enabled: true
+  interval_minutes: 5
+
+retries:
+  max_attempts: 5
+  strategy: exponential
+  base_delay_ms: 3000

@@ -1,0 +1,76 @@
+# Architecture Phase Configuration
+# System design and technical architecture
+
+phase: architecture
+description: Define system architecture and technical design
+
+parallelism: parallel
+
+aggregation_strategy: merge
+
+agents:
+  - ArchitectureAgent
+  - DataModelAgent
+  - APIDesignAgent
+  - InfrastructureAgent
+  - SecurityArchitectAgent
+
+budgets:
+  tokens: 250000
+  tools_minutes: 20
+  wallclock_minutes: 60
+
+guards:
+  - type: completeness
+    config:
+      required_diagrams:
+        - system_architecture
+        - data_model
+        - api_design
+        - deployment_architecture
+
+  - type: scalability
+    config:
+      min_scalability_score: 0.75
+
+  - type: security
+    config:
+      required_security_controls: 5
+
+gate:
+  pass_threshold: 0.80
+  auto_fix_enabled: true
+  max_attempts: 5
+  rubrics:
+    completeness: 0.25
+    scalability: 0.25
+    security: 0.25
+    grounding: 0.25
+
+qav:
+  enabled: true
+  max_questions: 20
+  min_grounding_score: 0.85
+  max_iterations: 5
+
+artifacts:
+  - type: ArchitectureDoc
+    required: true
+  - type: OpenAPI
+    required: true
+  - type: DataModel
+    required: true
+  - type: InfrastructureSpec
+    required: true
+
+dependencies:
+  - bizdev
+
+checkpoints:
+  enabled: true
+  interval_minutes: 4
+
+retries:
+  max_attempts: 5
+  strategy: exponential
+  base_delay_ms: 2000

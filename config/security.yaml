@@ -1,0 +1,74 @@
+# Security Phase Configuration
+# Security scanning and vulnerability assessment
+
+phase: security
+description: Comprehensive security scanning and hardening
+
+parallelism: parallel
+
+aggregation_strategy: merge
+
+agents:
+  - SASTAgent       # Static analysis
+  - DASTAgent       # Dynamic analysis
+  - DependencyAgent # Dependency scanning
+  - SecretsAgent    # Secret scanning
+  - SBOMAgent       # Software Bill of Materials
+
+budgets:
+  tokens: 150000
+  tools_minutes: 30
+  wallclock_minutes: 60
+
+guards:
+  - type: cve_count
+    config:
+      max_critical: 0
+      max_high: 2
+      max_medium: 10
+
+  - type: secrets_detected
+    config:
+      max_secrets: 0
+
+  - type: sbom_completeness
+    config:
+      min_dependencies_documented: 0.95
+
+gate:
+  pass_threshold: 0.90
+  auto_fix_enabled: true
+  max_attempts: 5
+  rubrics:
+    vulnerabilities: 0.40
+    secrets: 0.30
+    sbom: 0.15
+    grounding: 0.15
+
+qav:
+  enabled: true
+  max_questions: 15
+  min_grounding_score: 0.90
+  max_iterations: 5
+
+artifacts:
+  - type: SecurityPack
+    required: true
+  - type: SBOM
+    required: true
+  - type: VulnerabilityScan
+    required: true
+  - type: SecretsScanReport
+    required: true
+
+dependencies:
+  - build
+
+checkpoints:
+  enabled: true
+  interval_minutes: 3
+
+retries:
+  max_attempts: 5
+  strategy: exponential
+  base_delay_ms: 2000

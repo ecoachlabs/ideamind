@@ -1,0 +1,57 @@
+name: tool.prd.traceMatrix
+version: 1.2.0
+summary: Build Requirements Traceability Matrix linking use-cases to stories to tests
+owner: prd-team
+capabilities:
+  - traceability
+  - prd
+  - requirements
+
+input_schema:
+  $ref: "schemas/input.schema.json"
+
+output_schema:
+  $ref: "schemas/output.schema.json"
+
+runtime: docker
+image: ghcr.io/ideamine/trace-matrix:1.2.0
+entrypoint: ["python", "/app/main.py"]
+
+timeout_ms: 60000
+cpu: "500m"
+memory: "512Mi"
+
+egress:
+  allow:
+    - "s3://artifacts/*"
+
+secrets:
+  - S3_READ_TOKEN
+
+license: MIT
+
+security:
+  run_as_non_root: true
+  filesystem: read_only
+  network: restricted
+
+guardrails:
+  grounding_required: false
+  max_tokens: 0
+
+description: |
+  Analyzes user stories, use cases, and test cases to build a comprehensive
+  Requirements Traceability Matrix (RTM). Links requirements bidirectionally
+  to ensure coverage and identify gaps.
+
+  Features:
+  - Semantic similarity matching
+  - Bidirectional traceability
+  - Coverage gap detection
+  - Export to multiple formats
+
+tags:
+  - requirements
+  - traceability
+  - prd
+  - qa

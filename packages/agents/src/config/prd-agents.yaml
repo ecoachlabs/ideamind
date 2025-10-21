@@ -1,0 +1,95 @@
+# PRD Phase Agent Configurations
+# Version: 1.0.0
+#
+# These 3 agents run in PARALLEL for 3x performance improvement
+
+agents:
+  - id: "prd-writer-agent"
+    name: "PRD Writer Agent"
+    description: "Generates comprehensive Product Requirements Document"
+    phase: "PRD"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Precise, structured writing
+      maxTokens: 15000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0  # No tools needed
+      maxCostUsd: 0.60
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 15000
+      maxCostUsd: 0.60
+
+    timeout: 18000  # 18 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "prd-feature-decomposer-agent"
+    name: "Feature Decomposer Agent"
+    description: "Decomposes features into epics and user stories"
+    phase: "PRD"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Analytical decomposition
+      maxTokens: 15000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.60
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 15000
+      maxCostUsd: 0.60
+
+    timeout: 18000  # 18 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "prd-acceptance-criteria-agent"
+    name: "Acceptance Criteria Writer Agent"
+    description: "Writes acceptance criteria for user stories"
+    phase: "PRD"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Precise criteria writing
+      maxTokens: 15000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.60
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 15000
+      maxCostUsd: 0.60
+
+    timeout: 18000  # 18 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"

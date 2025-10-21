@@ -1,0 +1,73 @@
+# Multi-stage build for Worker service
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY tsconfig.json ./
+COPY packages/orchestrator-core/package*.json ./packages/orchestrator-core/
+COPY packages/schemas/package*.json ./packages/schemas/
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy source code
+COPY packages/orchestrator-core ./packages/orchestrator-core
+COPY packages/schemas ./packages/schemas
+
+# Build TypeScript
+RUN npm run build
+
+# Production stage
+FROM node:18-alpine
+
+# Install dumb-init and required tools
+RUN apk add --no-cache dumb-init git curl
+
+# Create app user
+RUN addgroup -g 1001 app && \
+    adduser -D -u 1001 -G app app
+
+WORKDIR /app
+
+# Copy built artifacts and dependencies from builder
+COPY --from=builder --chown=app:app /app/node_modules ./node_modules
+COPY --from=builder --chown=app:app /app/packages/orchestrator-core/dist ./packages/orchestrator-core/dist
+COPY --from=builder --chown=app:app /app/packages/schemas/dist ./packages/schemas/dist
+
+# Copy package.json files for runtime
+COPY --chown=app:app package.json ./
+COPY --chown=app:app packages/orchestrator-core/package.json ./packages/orchestrator-core/
+
+# Create workspace directory for workers
+RUN mkdir -p /app/workspace && chown app:app /app/workspace
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3001/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+USER app
+
+EXPOSE 3001
+
+VOLUME ["/app/workspace"]
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+CMD ["node", "packages/orchestrator-core/dist/worker.js"]
+
+# Build args
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+
+# Labels
+LABEL org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.title="IdeaMine Worker" \
+      org.opencontainers.image.description="Worker service for IdeaMine task execution" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.vendor="IdeaMine" \
+      org.opencontainers.image.licenses="MIT"

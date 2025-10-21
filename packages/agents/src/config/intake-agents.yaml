@@ -1,0 +1,97 @@
+# Intake Phase Agent Configurations
+# Version: 1.0.0
+
+agents:
+  - id: "intake-classifier-agent"
+    name: "Intake Classifier Agent"
+    description: "Categorizes ideas and estimates complexity"
+    phase: "INTAKE"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3
+      maxTokens: 8000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 2
+      maxCostUsd: 0.50
+      voiThreshold: 0.5
+      confidenceThreshold: 0.7
+      allowlist:
+        - "estimate-complexity"
+        - "search-similar-ideas"
+
+    budget:
+      maxTokens: 8000
+      maxCostUsd: 0.50
+
+    timeout: 30000  # 30 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "intake-expander-agent"
+    name: "Intake Expander Agent"
+    description: "Generates clarifying questions and extracts idea details"
+    phase: "INTAKE"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.4  # Slightly more creative for questions
+      maxTokens: 8000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 1
+      maxCostUsd: 0.25
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist:
+        - "validate-constraints"
+
+    budget:
+      maxTokens: 8000
+      maxCostUsd: 0.25
+
+    timeout: 40000  # 40 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "intake-validator-agent"
+    name: "Intake Validator Agent"
+    description: "Validates completeness and generates final IdeaSpec"
+    phase: "INTAKE"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.2  # Low temperature for validation
+      maxTokens: 4000
+      topP: 0.9
+
+    toolPolicy:
+      maxToolInvocations: 1
+      maxCostUsd: 0.15
+      voiThreshold: 0.7
+      confidenceThreshold: 0.85  # Higher confidence for final validation
+      allowlist:
+        - "validate-constraints"
+
+    budget:
+      maxTokens: 4000
+      maxCostUsd: 0.15
+
+    timeout: 20000  # 20 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"

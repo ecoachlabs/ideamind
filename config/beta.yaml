@@ -1,0 +1,76 @@
+# Beta Phase Configuration
+# Beta deployment and monitoring
+
+phase: beta
+description: Deploy to beta environment and monitor
+
+parallelism: sequential
+
+aggregation_strategy: merge
+
+agents:
+  - DeployAgent
+  - MonitorAgent
+  - FeedbackAgent
+  - AnalyticsAgent
+
+budgets:
+  tokens: 100000
+  tools_minutes: 20
+  wallclock_minutes: 60
+
+guards:
+  - type: deployment_health
+    config:
+      min_health_score: 0.95
+
+  - type: monitoring
+    config:
+      required_dashboards:
+        - error_rate
+        - latency
+        - throughput
+        - availability
+
+  - type: canary_validation
+    config:
+      canary_duration_minutes: 15
+      max_error_rate: 0.01
+
+gate:
+  pass_threshold: 0.90
+  auto_fix_enabled: true
+  max_attempts: 3
+  rubrics:
+    deployment_health: 0.40
+    monitoring: 0.30
+    canary: 0.20
+    grounding: 0.10
+
+qav:
+  enabled: true
+  max_questions: 8
+  min_grounding_score: 0.85
+  max_iterations: 3
+
+artifacts:
+  - type: DeploymentReport
+    required: true
+  - type: MonitoringDashboard
+    required: true
+  - type: CanaryResults
+    required: true
+  - type: BetaMetrics
+    required: true
+
+dependencies:
+  - release
+
+checkpoints:
+  enabled: true
+  interval_minutes: 3
+
+retries:
+  max_attempts: 3
+  strategy: exponential
+  base_delay_ms: 2000

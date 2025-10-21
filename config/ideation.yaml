@@ -1,0 +1,69 @@
+# Ideation Phase Configuration
+# Strategic planning and competitive analysis
+
+phase: ideation
+description: Strategic planning, competitive analysis, and technical direction
+
+parallelism: parallel
+
+aggregation_strategy: merge
+
+agents:
+  - StrategyAgent
+  - CompetitiveAgent
+  - TechStackAgent
+  - PersonaAgent
+
+budgets:
+  tokens: 100000
+  tools_minutes: 10
+  wallclock_minutes: 30
+
+guards:
+  - type: completeness
+    config:
+      required_sections:
+        - strategy
+        - competitors
+        - tech_stack
+        - personas
+
+  - type: feasibility
+    config:
+      min_feasibility_score: 0.7
+
+gate:
+  pass_threshold: 0.75
+  auto_fix_enabled: true
+  max_attempts: 3
+  rubrics:
+    completeness: 0.25
+    feasibility: 0.35
+    grounding: 0.40
+
+qav:
+  enabled: true
+  max_questions: 10
+  min_grounding_score: 0.8
+  max_iterations: 3
+
+artifacts:
+  - type: IdeationResult
+    schema: ideation.schema.json
+    required: true
+  - type: CompetitiveAnalysis
+    required: true
+  - type: TechStackProposal
+    required: true
+
+dependencies:
+  - intake
+
+checkpoints:
+  enabled: true
+  interval_minutes: 3
+
+retries:
+  max_attempts: 3
+  strategy: exponential
+  base_delay_ms: 2000

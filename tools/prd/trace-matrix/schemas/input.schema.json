@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Trace Matrix Input",
+  "description": "Input for building requirements traceability matrix",
+  "properties": {
+    "use_cases": {
+      "type": "array",
+      "description": "List of use cases to trace",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique use case identifier"
+          },
+          "title": {
+            "type": "string",
+            "description": "Use case title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed use case description"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["high", "medium", "low"],
+            "default": "medium"
+          }
+        },
+        "required": ["id", "title", "description"]
+      },
+      "minItems": 1
+    },
+    "stories": {
+      "type": "array",
+      "description": "List of user stories to link",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Story identifier (e.g., JIRA-123)"
+          },
+          "title": {
+            "type": "string",
+            "description": "Story title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Story description or acceptance criteria"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          }
+        },
+        "required": ["id", "title"]
+      },
+      "minItems": 1
+    },
+    "tests": {
+      "type": "array",
+      "description": "Optional list of test cases",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Test case identifier"
+          },
+          "title": {
+            "type": "string",
+            "description": "Test case title"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["unit", "integration", "e2e", "manual"],
+            "default": "integration"
+          }
+        },
+        "required": ["id", "title"]
+      },
+      "default": []
+    },
+    "similarity_threshold": {
+      "type": "number",
+      "description": "Minimum similarity score for automatic linking (0-1)",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.7
+    }
+  },
+  "required": ["use_cases", "stories"]
+}

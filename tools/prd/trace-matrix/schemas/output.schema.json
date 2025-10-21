@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Trace Matrix Output",
+  "description": "Requirements traceability matrix with linkages",
+  "properties": {
+    "rtm": {
+      "type": "array",
+      "description": "Traceability matrix entries",
+      "items": {
+        "type": "object",
+        "properties": {
+          "use_case_id": {
+            "type": "string",
+            "description": "Use case identifier"
+          },
+          "story_ids": {
+            "type": "array",
+            "description": "Linked story IDs",
+            "items": {
+              "type": "string"
+            }
+          },
+          "test_ids": {
+            "type": "array",
+            "description": "Linked test IDs",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          },
+          "confidence_scores": {
+            "type": "object",
+            "description": "Confidence scores for each link",
+            "additionalProperties": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "coverage_percentage": {
+            "type": "number",
+            "description": "Coverage percentage for this use case",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "required": ["use_case_id", "story_ids", "confidence_scores", "coverage_percentage"]
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "description": "Identified gaps in coverage",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["use_case_no_stories", "story_no_use_case", "use_case_no_tests", "low_confidence"]
+          },
+          "entity_id": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": ["type", "entity_id", "message"]
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Overall traceability metrics",
+      "properties": {
+        "total_use_cases": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_stories": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_tests": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "coverage_percentage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "orphaned_stories": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "uncovered_use_cases": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": ["total_use_cases", "total_stories", "coverage_percentage"]
+    }
+  },
+  "required": ["rtm", "gaps", "metrics"]
+}

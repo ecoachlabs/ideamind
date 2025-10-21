@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LLM Provider Configuration",
+  "description": "Configuration for LLM providers per phase and agent type",
+  "type": "object",
+  "properties": {
+    "defaultProvider": {
+      "type": "object",
+      "description": "Default provider configuration (fallback)",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": ["openai", "anthropic", "google"],
+          "description": "LLM provider name"
+        },
+        "model": {
+          "type": "string",
+          "description": "Model identifier (e.g., gpt-4o, claude-3-5-sonnet-20241022, gemini-1.5-pro)"
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Sampling temperature (0 = deterministic, higher = more creative)"
+        },
+        "maxTokens": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 200000,
+          "description": "Maximum tokens in response"
+        },
+        "topP": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Nucleus sampling threshold (optional)"
+        }
+      },
+      "required": ["provider", "model", "temperature", "maxTokens"]
+    },
+    "phaseConfigs": {
+      "type": "array",
+      "description": "Phase-specific LLM configurations",
+      "items": {
+        "type": "object",
+        "properties": {
+          "phase": {
+            "type": "string",
+            "enum": [
+              "INTAKE",
+              "IDEATION",
+              "CRITIQUE",
+              "PRD",
+              "BIZDEV",
+              "ARCH",
+              "BUILD",
+              "CODING",
+              "QA",
+              "AESTHETIC",
+              "RELEASE",
+              "BETA"
+            ],
+            "description": "Phase name"
+          },
+          "agentType": {
+            "type": "string",
+            "enum": ["question-agent", "answer-agent", "validator"],
+            "description": "Agent type within the phase"
+          },
+          "provider": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "enum": ["openai", "anthropic", "google"]
+              },
+              "model": {
+                "type": "string"
+              },
+              "temperature": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 2
+              },
+              "maxTokens": {
+                "type": "integer",
+                "minimum": 100,
+                "maximum": 200000
+              },
+              "topP": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "comment": {
+                "type": "string",
+                "description": "Optional comment explaining why this provider/model was chosen"
+              }
+            },
+            "required": ["provider", "model", "temperature", "maxTokens"]
+          }
+        },
+        "required": ["phase", "agentType", "provider"]
+      }
+    },
+    "notes": {
+      "type": "object",
+      "description": "Documentation for platform admins"
+    }
+  },
+  "required": ["defaultProvider", "phaseConfigs"]
+}

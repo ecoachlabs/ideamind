@@ -1,0 +1,125 @@
+# BIZDEV Phase Agent Configurations
+# Version: 1.0.0
+#
+# These 4 agents run in PARALLEL for 4x performance improvement
+
+agents:
+  - id: "bizdev-viability-analyzer-agent"
+    name: "Viability Analyzer Agent"
+    description: "Analyzes business viability with financial projections and unit economics"
+    phase: "BIZDEV"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Analytical precision for financial modeling
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0  # No tools needed
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 15000  # 15 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "bizdev-gtm-planner-agent"
+    name: "GTM Planner Agent"
+    description: "Creates comprehensive go-to-market strategy with launch plan"
+    phase: "BIZDEV"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.4  # Slightly creative for marketing strategy
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 15000  # 15 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "bizdev-pricing-modeler-agent"
+    name: "Pricing Modeler Agent"
+    description: "Designs pricing model with tiers and competitive analysis"
+    phase: "BIZDEV"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.3  # Analytical for pricing strategy
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 15000  # 15 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"
+
+  - id: "bizdev-monetization-advisor-agent"
+    name: "Monetization Advisor Agent"
+    description: "Provides revenue stream diversification and optimization strategies"
+    phase: "BIZDEV"
+    version: "1.0.0"
+
+    llm:
+      provider: "anthropic"
+      model: "claude-3-7-sonnet-20250219"
+      temperature: 0.4  # Slightly creative for monetization opportunities
+      maxTokens: 12000
+      topP: 0.95
+
+    toolPolicy:
+      maxToolInvocations: 0
+      maxCostUsd: 0.50
+      voiThreshold: 0.6
+      confidenceThreshold: 0.75
+      allowlist: []
+
+    budget:
+      maxTokens: 12000
+      maxCostUsd: 0.50
+
+    timeout: 15000  # 15 seconds
+
+    retries:
+      maxAttempts: 3
+      backoff: "exponential"

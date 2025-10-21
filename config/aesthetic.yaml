@@ -1,0 +1,72 @@
+# Aesthetic Phase Configuration
+# UI/UX polish and design refinement
+
+phase: aesthetic
+description: Polish UI/UX, branding, and visual design
+
+parallelism: parallel
+
+aggregation_strategy: merge
+
+agents:
+  - UIPolishAgent
+  - BrandingAgent
+  - AnimationAgent
+  - ResponsiveAgent
+
+budgets:
+  tokens: 150000
+  tools_minutes: 20
+  wallclock_minutes: 60
+
+guards:
+  - type: design_consistency
+    config:
+      min_consistency_score: 0.85
+
+  - type: responsive_design
+    config:
+      required_breakpoints:
+        - mobile
+        - tablet
+        - desktop
+
+  - type: brand_compliance
+    config:
+      min_brand_score: 0.80
+
+gate:
+  pass_threshold: 0.80
+  auto_fix_enabled: true
+  max_attempts: 3
+  rubrics:
+    consistency: 0.35
+    responsiveness: 0.30
+    branding: 0.20
+    grounding: 0.15
+
+qav:
+  enabled: true
+  max_questions: 10
+  min_grounding_score: 0.80
+  max_iterations: 3
+
+artifacts:
+  - type: DesignSystem
+    required: true
+  - type: StyleGuide
+    required: true
+  - type: VisualAssets
+    required: true
+
+dependencies:
+  - qa
+
+checkpoints:
+  enabled: true
+  interval_minutes: 3
+
+retries:
+  max_attempts: 3
+  strategy: exponential
+  base_delay_ms: 2000

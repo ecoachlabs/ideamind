@@ -1,0 +1,67 @@
+# Critique Phase Configuration
+# Red-team review and challenge assumptions
+
+phase: critique
+description: Challenge assumptions and identify risks
+
+parallelism: sequential
+
+aggregation_strategy: merge
+
+agents:
+  - CritiqueAgent
+  - RiskAnalysisAgent
+  - AssumptionChallengerAgent
+
+budgets:
+  tokens: 75000
+  tools_minutes: 8
+  wallclock_minutes: 25
+
+guards:
+  - type: risk_coverage
+    config:
+      min_risks_identified: 3
+      required_categories:
+        - technical
+        - business
+        - user
+
+  - type: assumption_validation
+    config:
+      min_assumptions_challenged: 5
+
+gate:
+  pass_threshold: 0.70
+  auto_fix_enabled: true
+  max_attempts: 3
+  rubrics:
+    risk_coverage: 0.40
+    assumption_quality: 0.30
+    grounding: 0.30
+
+qav:
+  enabled: true
+  max_questions: 8
+  min_grounding_score: 0.75
+  max_iterations: 3
+
+artifacts:
+  - type: CritiqueReport
+    required: true
+  - type: RiskRegister
+    required: true
+  - type: RevisedAssumptions
+    required: true
+
+dependencies:
+  - ideation
+
+checkpoints:
+  enabled: true
+  interval_minutes: 2
+
+retries:
+  max_attempts: 3
+  strategy: exponential
+  base_delay_ms: 1500

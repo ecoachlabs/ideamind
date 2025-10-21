@@ -1,0 +1,368 @@
+{
+  "dashboard": {
+    "title": "IdeaMine - Cost Tracking & Budget Monitoring",
+    "uid": "ideamine-cost-tracking",
+    "timezone": "browser",
+    "schemaVersion": 30,
+    "version": 1,
+    "refresh": "1m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Cost Today",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+        "targets": [
+          {
+            "expr": "sum(increase(ideamine_run_cost_usd_total[24h]))",
+            "legendFormat": "Total Cost"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 2,
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 1000, "color": "yellow" },
+                { "value": 5000, "color": "red" }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "orientation": "auto"
+        }
+      },
+      {
+        "id": 2,
+        "title": "Cost per Run (Average)",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+        "targets": [
+          {
+            "expr": "sum(increase(ideamine_run_cost_usd_total[24h])) / sum(increase(ideamine_run_completed_total[24h]))",
+            "legendFormat": "Avg Cost/Run"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Token Budget Utilization",
+        "type": "gauge",
+        "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+        "targets": [
+          {
+            "expr": "sum(ideamine_phase_tokens_used_total) / sum(ideamine_phase_tokens_budget_total) * 100",
+            "legendFormat": "Budget Used %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 100,
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 70, "color": "yellow" },
+                { "value": 90, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Cost Trend (7 Days)",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 4 },
+        "targets": [
+          {
+            "expr": "sum(increase(ideamine_run_cost_usd_total[1h]))",
+            "legendFormat": "Hourly Cost"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "custom": {
+              "drawStyle": "bars",
+              "fillOpacity": 50
+            }
+          }
+        },
+        "options": {
+          "tooltip": {
+            "mode": "multi"
+          },
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Cost by Phase (24h)",
+        "type": "piechart",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+        "targets": [
+          {
+            "expr": "sum by (phase) (increase(ideamine_phase_cost_usd_total[24h]))",
+            "legendFormat": "{{phase}}"
+          }
+        ],
+        "options": {
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "values": ["value", "percent"]
+          },
+          "pieType": "pie",
+          "tooltip": {
+            "mode": "single"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Token Usage vs Budget by Phase",
+        "type": "barchart",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+        "targets": [
+          {
+            "expr": "sum by (phase) (ideamine_phase_tokens_used_total)",
+            "legendFormat": "{{phase}} (Used)"
+          },
+          {
+            "expr": "sum by (phase) (ideamine_phase_tokens_budget_total)",
+            "legendFormat": "{{phase}} (Budget)"
+          }
+        ],
+        "options": {
+          "orientation": "horizontal",
+          "stacking": "none",
+          "groupWidth": 0.7
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Top 10 Most Expensive Runs (24h)",
+        "type": "table",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+        "targets": [
+          {
+            "expr": "topk(10, ideamine_run_cost_usd)",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "Time": true,
+                "__name__": true
+              },
+              "indexByName": {
+                "run_id": 0,
+                "Value": 1,
+                "phase_count": 2,
+                "duration_ms": 3
+              },
+              "renameByName": {
+                "run_id": "Run ID",
+                "Value": "Cost (USD)",
+                "phase_count": "Phases",
+                "duration_ms": "Duration (ms)"
+              }
+            }
+          }
+        ],
+        "options": {
+          "showHeader": true,
+          "sortBy": [
+            {
+              "displayName": "Cost (USD)",
+              "desc": true
+            }
+          ]
+        },
+        "fieldConfig": {
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "Cost (USD)" },
+              "properties": [
+                { "id": "unit", "value": "currencyUSD" },
+                { "id": "decimals", "value": 2 },
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "type": "color-background",
+                    "mode": "gradient"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 8,
+        "title": "Budget Alerts",
+        "type": "table",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+        "targets": [
+          {
+            "expr": "(ideamine_phase_tokens_used_total / ideamine_phase_tokens_budget_total * 100) > 80",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "renameByName": {
+                "run_id": "Run ID",
+                "phase": "Phase",
+                "Value": "Usage %"
+              }
+            }
+          }
+        ],
+        "options": {
+          "showHeader": true
+        },
+        "fieldConfig": {
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "Usage %" },
+              "properties": [
+                { "id": "unit", "value": "percent" },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "steps": [
+                      { "value": 0, "color": "green" },
+                      { "value": 80, "color": "yellow" },
+                      { "value": 95, "color": "red" }
+                    ]
+                  }
+                },
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "type": "color-background"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 9,
+        "title": "Cost Efficiency (Cost per Token)",
+        "type": "timeseries",
+        "gridPos": { "h": 6, "w": 12, "x": 0, "y": 28 },
+        "targets": [
+          {
+            "expr": "sum(rate(ideamine_run_cost_usd_total[5m])) / sum(rate(ideamine_phase_tokens_used_total[5m])) * 1000000",
+            "legendFormat": "Cost per 1M tokens"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 2,
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth"
+            }
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "Monthly Cost Projection",
+        "type": "stat",
+        "gridPos": { "h": 6, "w": 12, "x": 12, "y": 28 },
+        "targets": [
+          {
+            "expr": "sum(increase(ideamine_run_cost_usd_total[24h])) * 30",
+            "legendFormat": "Projected Monthly"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 0,
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 10000, "color": "yellow" },
+                { "value": 50000, "color": "red" }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "textMode": "value_and_name"
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "datasource",
+          "type": "datasource",
+          "query": "prometheus"
+        },
+        {
+          "name": "time_range",
+          "type": "interval",
+          "query": "1h,6h,24h,7d,30d",
+          "current": {
+            "text": "24h",
+            "value": "24h"
+          }
+        }
+      ]
+    },
+    "time": {
+      "from": "now-7d",
+      "to": "now"
+    }
+  }
+}
